@@ -12,51 +12,94 @@
 html{scroll-behavior:smooth}
 body{
   font-family: 'PingFang SC','Microsoft YaHei','Noto Sans SC','Segoe UI',sans-serif;
-  background:#080C1A;color:#C8D6E5;line-height:1.7;
+  background:#F0F7FF;color:#1E293B;line-height:1.7;
   overflow-x:hidden;
 }
-a{color:#00D4FF;text-decoration:none}
-::selection{background:rgba(0,212,255,0.3);color:#fff}
+a{color:#2563EB;text-decoration:none}
+::selection{background:rgba(37,99,235,0.15);color:#1E293B}
 
-/* ===== SCANLINE OVERLAY ===== */
-body::after{
+/* ===== DYNAMIC GRADIENT BG ===== */
+body::before{
   content:'';position:fixed;top:0;left:0;width:100%;height:100%;
-  pointer-events:none;z-index:9999;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.015) 2px,rgba(0,212,255,0.015) 4px);
+  background:
+    radial-gradient(ellipse at 20% 20%,rgba(37,99,235,0.04) 0%,transparent 50%),
+    radial-gradient(ellipse at 80% 30%,rgba(220,38,38,0.03) 0%,transparent 40%),
+    radial-gradient(ellipse at 50% 80%,rgba(245,158,11,0.03) 0%,transparent 50%);
+  pointer-events:none;z-index:-1;
+  animation:bgShift 12s ease-in-out infinite alternate;
+}
+@keyframes bgShift{
+  0%{transform:scale(1) rotate(0deg)}
+  100%{transform:scale(1.08) rotate(2deg)}
+}
+
+/* ===== FLOATING GEOMETRIC SHAPES ===== */
+.float-shapes{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:-1;overflow:hidden}
+.float-shape{
+  position:absolute;border-radius:50%;opacity:0.06;
+  animation:floatAnim 20s ease-in-out infinite;
+}
+.float-shape:nth-child(1){
+  width:300px;height:300px;background:linear-gradient(135deg,#2563EB,#0EA5E9);
+  top:5%;left:3%;animation-delay:0s;animation-duration:22s;
+}
+.float-shape:nth-child(2){
+  width:200px;height:200px;background:linear-gradient(135deg,#DC2626,#F59E0B);
+  top:30%;right:5%;animation-delay:-5s;animation-duration:18s;
+}
+.float-shape:nth-child(3){
+  width:150px;height:150px;background:linear-gradient(135deg,#0EA5E9,#10B981);
+  bottom:15%;left:10%;animation-delay:-10s;animation-duration:25s;
+}
+.float-shape:nth-child(4){
+  width:250px;height:250px;background:linear-gradient(135deg,#F59E0B,#DC2626);
+  bottom:30%;right:8%;animation-delay:-15s;animation-duration:20s;
+}
+@keyframes floatAnim{
+  0%,100%{transform:translate(0,0) scale(1)}
+  25%{transform:translate(30px,-40px) scale(1.05)}
+  50%{transform:translate(-20px,20px) scale(0.95)}
+  75%{transform:translate(40px,30px) scale(1.02)}
 }
 
 /* ===== NAV ===== */
 nav{
   position:fixed;top:0;left:0;width:100%;z-index:1000;
-  background:rgba(8,12,26,0.85);backdrop-filter:blur(16px);
-  border-bottom:1px solid rgba(0,212,255,0.15);
+  background:rgba(240,247,255,0.82);backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(37,99,235,0.08);
   transition:box-shadow 0.3s;
 }
-nav.scrolled{box-shadow:0 0 30px rgba(0,212,255,0.08)}
+nav.scrolled{box-shadow:0 4px 30px rgba(37,99,235,0.06)}
 nav .inner{
   max-width:1200px;margin:0 auto;padding:0 24px;
   height:60px;display:flex;align-items:center;justify-content:space-between;
 }
 nav .logo{
-  font-weight:800;font-size:1.05rem;
-  background:linear-gradient(90deg,#00D4FF,#0088FF);
+  font-weight:800;font-size:1.05rem;letter-spacing:1px;
+  background:linear-gradient(135deg,#2563EB,#0EA5E9,#2563EB);
+  background-size:200% auto;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  letter-spacing:1px;
+  animation:logoShimmer 3s linear infinite;
 }
-nav .links{display:flex;gap:4px}
+@keyframes logoShimmer{0%{background-position:0% center}100%{background-position:200% center}}
+nav .links{display:flex;gap:2px}
 nav a{
-  color:#8899BB;font-size:0.82rem;padding:6px 14px;border-radius:6px;
-  transition:all 0.3s;letter-spacing:0.5px;
+  color:#64748B;font-size:0.82rem;padding:8px 16px;border-radius:8px;
+  transition:all 0.3s;letter-spacing:0.5px;font-weight:500;
+  position:relative;
 }
-nav a:hover{
-  color:#00D4FF;background:rgba(0,212,255,0.08);
-  text-shadow:0 0 12px rgba(0,212,255,0.4);
+nav a::after{
+  content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%) scaleX(0);
+  width:70%;height:2px;background:#2563EB;border-radius:1px;
+  transition:transform 0.3s;
 }
+nav a:hover::after{transform:translateX(-50%) scaleX(1)}
+nav a:hover{color:#2563EB;background:rgba(37,99,235,0.05)}
 
 /* ===== PARTICLE CANVAS ===== */
 #particleCanvas{
   position:fixed;top:0;left:0;width:100%;height:100%;
-  pointer-events:none;z-index:0;
+  pointer-events:none;z-index:0;opacity:0.35;
 }
 
 /* ===== HERO ===== */
@@ -65,118 +108,112 @@ nav a:hover{
   min-height:100vh;display:flex;align-items:center;justify-content:center;
   padding:100px 24px 60px;text-align:center;overflow:hidden;
 }
-.hero::before{
-  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
-  background:radial-gradient(ellipse at 50% 40%,rgba(0,212,255,0.06) 0%,transparent 60%),
-              radial-gradient(ellipse at 50% 60%,rgba(255,0,51,0.04) 0%,transparent 50%);
-  pointer-events:none;animation:heroPulse 8s ease-in-out infinite;
-}
-@keyframes heroPulse{
-  0%,100%{transform:scale(1);opacity:1}
-  50%{transform:scale(1.05);opacity:0.7}
-}
 .hero .grid-bg{
   position:absolute;top:0;left:0;width:100%;height:100%;
   background-image:
-    linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);
+    linear-gradient(rgba(37,99,235,0.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(37,99,235,0.04) 1px,transparent 1px);
   background-size:60px 60px;
-  pointer-events:none;mask-image:radial-gradient(ellipse at center,black 30%,transparent 70%);
-  -webkit-mask-image:radial-gradient(ellipse at center,black 30%,transparent 70%);
+  pointer-events:none;
+  mask-image:radial-gradient(ellipse at center,black 35%,transparent 72%);
+  -webkit-mask-image:radial-gradient(ellipse at center,black 35%,transparent 72%);
+  animation:gridPulse 6s ease-in-out infinite;
 }
+@keyframes gridPulse{0%,100%{opacity:0.5}50%{opacity:1}}
 .hero-content{position:relative;z-index:2;max-width:900px}
 .hero .badge{
   display:inline-flex;align-items:center;gap:8px;
-  background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);
-  padding:6px 18px;border-radius:20px;font-size:0.78rem;
-  color:rgba(0,212,255,0.8);margin-bottom:28px;letter-spacing:1px;
+  background:rgba(37,99,235,0.06);border:1px solid rgba(37,99,235,0.15);
+  padding:6px 20px;border-radius:20px;font-size:0.78rem;
+  color:#2563EB;margin-bottom:28px;letter-spacing:1px;
 }
-.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:#00D4FF;animation:blink 1.5s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:#2563EB;animation:pulseDot 1.5s ease-in-out infinite}
+@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.3;transform:scale(0.7)}}
 .hero h1{
-  font-size:3.2rem;font-weight:800;line-height:1.2;margin-bottom:16px;
-  background:linear-gradient(135deg,#00D4FF 0%,#0088FF 30%,#00D4FF 70%,#66E0FF 100%);
+  font-size:3.2rem;font-weight:800;line-height:1.15;margin-bottom:16px;
+  background:linear-gradient(135deg,#1E40AF 0%,#2563EB 30%,#0EA5E9 70%,#1E40AF 100%);
   background-size:200% auto;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   animation:shimmer 4s linear infinite;
-  letter-spacing:3px;
+  letter-spacing:2px;
 }
 @keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
 .hero .china-em{
   display:block;margin-top:6px;
-  font-size:2rem;letter-spacing:4px;
-  background:linear-gradient(90deg,#FFD700,#FF0033,#FFD700);
+  font-size:1.9rem;letter-spacing:3px;font-weight:700;
+  background:linear-gradient(90deg,#F59E0B,#DC2626,#F59E0B);
   background-size:200% auto;
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   animation:shimmer 3s linear infinite;
 }
 .hero p{
-  font-size:1.05rem;color:#8899BB;max-width:650px;margin:0 auto 32px;
-  letter-spacing:0.5px;
+  font-size:1.05rem;color:#64748B;max-width:650px;margin:0 auto 32px;letter-spacing:0.5px;
 }
 .hero-stats{
   display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-top:36px;
 }
-.hero-stat{
-  text-align:center;
-}
+.hero-stat{text-align:center;position:relative;}
 .hero-stat .num{
-  font-size:2.4rem;font-weight:800;
-  background:linear-gradient(135deg,#00D4FF,#66E0FF);
+  font-size:2.6rem;font-weight:800;line-height:1;
+  background:linear-gradient(135deg,#2563EB,#0EA5E9);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  line-height:1;
+  transition:transform 0.3s;
 }
+.hero-stat:hover .num{transform:scale(1.08)}
 .hero-stat .num.gold{
-  background:linear-gradient(135deg,#FFD700,#FF8C00);
+  background:linear-gradient(135deg,#F59E0B,#DC2626);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
-.hero-stat .label{font-size:0.78rem;color:#667799;margin-top:6px;letter-spacing:1px}
+.hero-stat .label{font-size:0.78rem;color:#94A3B8;margin-top:6px;letter-spacing:1px;font-weight:500}
 
 /* ===== SECTION COMMON ===== */
 .section{
   position:relative;z-index:1;padding:80px 0;
 }
-.section-alt{background:rgba(0,212,255,0.02)}
-.section::before{
-  content:'';position:absolute;top:0;left:0;width:100%;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.2),transparent);
+.section-alt{
+  background:rgba(37,99,235,0.02);
+  border-top:1px solid rgba(37,99,235,0.04);
+  border-bottom:1px solid rgba(37,99,235,0.04);
 }
 .container{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
 
 .section-title{
   font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:6px;
-  background:linear-gradient(90deg,#00D4FF,#0088FF);
+  background:linear-gradient(135deg,#1E40AF,#2563EB);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
   letter-spacing:2px;
 }
 .section-subtitle{
-  font-size:0.88rem;color:#667799;text-align:center;margin-bottom:36px;letter-spacing:0.5px;
+  font-size:0.88rem;color:#94A3B8;text-align:center;margin-bottom:36px;letter-spacing:0.5px;font-weight:500;
 }
 .divider{
-  width:80px;height:3px;margin:12px auto 36px;border-radius:2px;
-  background:linear-gradient(90deg,#00D4FF,transparent);position:relative;
+  width:80px;height:4px;margin:14px auto 36px;border-radius:2px;
+  background:linear-gradient(90deg,#2563EB,#0EA5E9);position:relative;
+  overflow:visible;
 }
 .divider::after{
   content:'';position:absolute;right:-3px;top:-2px;
-  width:7px;height:7px;border-radius:50%;background:#00D4FF;
-  box-shadow:0 0 10px #00D4FF;
+  width:8px;height:8px;border-radius:50%;background:#2563EB;
+  animation:dividerDot 2s ease-in-out infinite;
 }
+@keyframes dividerDot{0%,100%{box-shadow:0 0 0 rgba(37,99,235,0.4)}50%{box-shadow:0 0 16px rgba(37,99,235,0.6)}}
 
 /* ===== CHART BOX ===== */
 .chart-box{
-  background:rgba(10,16,36,0.75);
-  border:1px solid rgba(0,212,255,0.12);
-  border-radius:16px;padding:28px;margin-bottom:36px;
-  backdrop-filter:blur(8px);
-  transition:border-color 0.3s,box-shadow 0.3s;
+  background:rgba(255,255,255,0.7);
+  border:1px solid rgba(37,99,235,0.08);
+  border-radius:20px;padding:28px;margin-bottom:36px;
+  backdrop-filter:blur(12px);
+  box-shadow:0 1px 3px rgba(37,99,235,0.04),0 8px 32px rgba(37,99,235,0.04);
+  transition:all 0.4s;
 }
 .chart-box:hover{
-  border-color:rgba(0,212,255,0.25);
-  box-shadow:0 0 40px rgba(0,212,255,0.04);
+  box-shadow:0 4px 20px rgba(37,99,235,0.08),0 20px 60px rgba(37,99,235,0.04);
+  border-color:rgba(37,99,235,0.15);
+  transform:translateY(-2px);
 }
 .chart-box h3{
-  font-size:1rem;font-weight:600;color:#8899BB;margin-bottom:20px;
-  letter-spacing:0.5px;
+  font-size:1rem;font-weight:600;color:#64748B;margin-bottom:20px;letter-spacing:0.5px;
 }
 .chart-wrap{position:relative;width:100%}
 .chart-wrap canvas{width:100%!important;max-height:460px}
@@ -186,73 +223,88 @@ nav a:hover{
   display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:32px;
 }
 .kpi-card{
-  background:rgba(10,16,36,0.7);border:1px solid rgba(0,212,255,0.1);
-  border-radius:14px;padding:24px;text-align:center;
-  backdrop-filter:blur(6px);transition:all 0.4s;overflow:hidden;position:relative;
+  background:rgba(255,255,255,0.75);
+  border:1px solid rgba(37,99,235,0.06);
+  border-radius:18px;padding:28px 20px;text-align:center;
+  backdrop-filter:blur(6px);
+  box-shadow:0 1px 3px rgba(37,99,235,0.03),0 4px 12px rgba(37,99,235,0.02);
+  transition:all 0.4s;overflow:hidden;position:relative;
 }
 .kpi-card::before{
-  content:'';position:absolute;top:0;left:0;width:100%;height:3px;
-  background:linear-gradient(90deg,#00D4FF,#0088FF);opacity:0.6;
+  content:'';position:absolute;top:0;left:0;width:100%;height:4px;
+  background:linear-gradient(90deg,#2563EB,#0EA5E9);opacity:0.6;
 }
-.kpi-card:nth-child(1)::before{background:linear-gradient(90deg,#FFD700,#FF0033)}
+.kpi-card:nth-child(1)::before{
+  background:linear-gradient(90deg,#F59E0B,#DC2626,#F59E0B);
+  background-size:200% auto;animation:cardStripe 2s linear infinite;
+}
+@keyframes cardStripe{0%{background-position:0% center}100%{background-position:200% center}}
 .kpi-card:hover{
-  border-color:rgba(0,212,255,0.3);transform:translateY(-4px);
-  box-shadow:0 8px 40px rgba(0,212,255,0.06);
+  border-color:rgba(37,99,235,0.15);transform:translateY(-6px);
+  box-shadow:0 8px 30px rgba(37,99,235,0.08),0 20px 60px rgba(37,99,235,0.04);
 }
-.kpi-card:nth-child(1):hover{border-color:rgba(255,0,51,0.3);box-shadow:0 8px 40px rgba(255,0,51,0.06)}
+.kpi-card:hover::before{opacity:1}
 .kpi-card .num{
-  font-size:2.2rem;font-weight:800;line-height:1.1;margin-bottom:2px;
+  font-size:2.4rem;font-weight:800;line-height:1.1;margin-bottom:4px;
+  background:linear-gradient(135deg,#2563EB,#0EA5E9);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  transition:transform 0.3s;
 }
+.kpi-card:hover .num{transform:scale(1.05)}
 .kpi-card:nth-child(1) .num{
-  background:linear-gradient(135deg,#FFD700,#FF0033);
+  background:linear-gradient(135deg,#F59E0B,#DC2626);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
 }
-.kpi-card .num{
-  background:linear-gradient(135deg,#00D4FF,#66E0FF);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
-.kpi-card .label{font-size:0.85rem;color:#8899BB;margin-bottom:2px;letter-spacing:0.5px}
-.kpi-card .desc{font-size:0.75rem;color:#556688}
+.kpi-card .label{font-size:0.85rem;color:#64748B;margin-bottom:2px;letter-spacing:0.5px;font-weight:500}
+.kpi-card .desc{font-size:0.75rem;color:#94A3B8}
 
 /* ===== INSIGHT BANNER ===== */
 .insight{
-  background:rgba(0,212,255,0.04);border-left:3px solid #00D4FF;
-  padding:16px 22px;border-radius:0 10px 10px 0;margin:24px 0;
-  font-size:0.88rem;color:#8899BB;
+  background:linear-gradient(90deg,rgba(37,99,235,0.04),transparent);
+  border-left:4px solid #2563EB;
+  padding:16px 24px;border-radius:0 12px 12px 0;margin:24px 0;
+  font-size:0.88rem;color:#475569;
+  transition:border-color 0.3s;
 }
-.insight strong{color:#00D4FF}
+.insight:hover{border-left-color:#DC2626}
+.insight strong{color:#2563EB}
+.insight .hl{color:#DC2626;font-weight:600}
 
 /* ===== TABLE ===== */
-.table-wrap{overflow-x:auto}
+.table-wrap{overflow-x:auto;border-radius:12px}
 table{width:100%;border-collapse:collapse;font-size:0.85rem}
 th{
-  background:rgba(0,212,255,0.08);color:#00D4FF;padding:12px 16px;
+  background:rgba(37,99,235,0.04);color:#2563EB;padding:14px 16px;
   text-align:left;font-weight:600;letter-spacing:0.5px;
-  border-bottom:1px solid rgba(0,212,255,0.1);
+  border-bottom:2px solid rgba(37,99,235,0.06);
 }
-td{padding:10px 16px;border-bottom:1px solid rgba(0,212,255,0.05);color:#8899BB}
-tr:hover td{background:rgba(0,212,255,0.03)}
-tr:nth-child(1) td{color:#E0E6FF}
-tr:nth-child(1) td:first-child{color:#FFD700}
+td{padding:12px 16px;border-bottom:1px solid rgba(37,99,235,0.04);color:#64748B}
+tr{transition:background 0.2s}
+tr:hover td{background:rgba(37,99,235,0.02)}
+tr:hover{transform:scale(1.002)}
+tr:nth-child(1) td{color:#0F172A;font-weight:500}
+tr:nth-child(1) td:nth-child(2){color:#DC2626;font-weight:700}
+tr:nth-child(1) td:nth-child(3){color:#F59E0B;font-weight:700}
+tr:nth-child(1) td:nth-child(4){color:#F59E0B;font-weight:700}
 .rank-num{
-  display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;
+  display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;
   border-radius:50%;font-weight:700;font-size:0.75rem;
-  background:rgba(0,212,255,0.1);color:#00D4FF;
+  background:rgba(37,99,235,0.06);color:#2563EB;
 }
 tr:nth-child(1) .rank-num{
-  background:linear-gradient(135deg,#FF0033,#FFD700);color:#fff;
-  box-shadow:0 0 12px rgba(255,0,51,0.3);
+  background:linear-gradient(135deg,#DC2626,#F59E0B);color:#fff;
+  box-shadow:0 2px 12px rgba(220,38,38,0.25);
 }
-tr:nth-child(2) .rank-num{background:rgba(0,212,255,0.2);color:#00D4FF}
-tr:nth-child(3) .rank-num{background:rgba(0,136,255,0.2);color:#0088FF}
-tr:nth-child(4) .rank-num{background:rgba(255,140,0,0.2);color:#FF8C00}
+tr:nth-child(2) .rank-num{background:rgba(37,99,235,0.1);color:#1E40AF}
+tr:nth-child(3) .rank-num{background:rgba(14,165,233,0.1);color:#0369A1}
+tr:nth-child(4) .rank-num{background:rgba(245,158,11,0.1);color:#D97706}
 
 /* ===== TIMELINE ===== */
 .timeline{position:relative;padding:24px 0}
 .timeline::before{
   content:'';position:absolute;left:50%;top:0;bottom:0;
-  width:2px;background:linear-gradient(to bottom,transparent,#00D4FF,transparent);
-  transform:translateX(-50%);
+  width:3px;background:linear-gradient(to bottom,transparent,#2563EB,transparent);
+  transform:translateX(-50%);border-radius:2px;
 }
 .timeline-row{
   display:flex;margin-bottom:28px;position:relative;align-items:flex-start;
@@ -263,16 +315,22 @@ tr:nth-child(4) .rank-num{background:rgba(255,140,0,0.2);color:#FF8C00}
 .timeline-row:nth-child(even) .col{padding-right:40px;text-align:right}
 .timeline-dot{
   position:absolute;left:50%;top:6px;
-  width:16px;height:16px;border-radius:50%;
-  background:#080C1A;border:3px solid #00D4FF;
+  width:18px;height:18px;border-radius:50%;
+  background:#fff;border:4px solid #2563EB;
   transform:translateX(-50%);z-index:2;
-  box-shadow:0 0 12px rgba(0,212,255,0.3);
-  transition:box-shadow 0.3s;
+  box-shadow:0 0 0 4px rgba(37,99,235,0.1);
+  transition:all 0.4s;
 }
-.timeline-row:hover .timeline-dot{box-shadow:0 0 24px rgba(0,212,255,0.6)}
-.timeline-year{font-weight:700;font-size:0.9rem;color:#00D4FF;letter-spacing:1px}
-.timeline-title{font-weight:600;font-size:1rem;margin:4px 0 6px;color:#E0E6FF}
-.timeline-desc{font-size:0.82rem;color:#667799}
+.timeline-row:hover .timeline-dot{
+  box-shadow:0 0 0 8px rgba(37,99,235,0.12),0 0 20px rgba(37,99,235,0.2);
+  transform:translateX(-50%) scale(1.15);
+}
+.timeline-year{
+  font-weight:700;font-size:0.9rem;color:#2563EB;letter-spacing:1px;
+  display:inline-block;background:rgba(37,99,235,0.06);padding:2px 12px;border-radius:10px;
+}
+.timeline-title{font-weight:700;font-size:1rem;margin:6px 0 6px;color:#0F172A}
+.timeline-desc{font-size:0.83rem;color:#64748B;line-height:1.6}
 
 /* ===== ANIMATIONS ===== */
 .fade-up{opacity:0;transform:translateY(40px);transition:opacity 0.8s ease,transform 0.8s ease}
@@ -285,108 +343,121 @@ tr:nth-child(4) .rank-num{background:rgba(255,140,0,0.2);color:#FF8C00}
 /* ===== COUNTER ANIMATION ===== */
 .counter-num{display:inline-block}
 
-/* ===== CIRCUIT LINES (decorative) ===== */
-.circuit{
-  position:absolute;pointer-events:none;opacity:0.06;
-  background:linear-gradient(90deg,transparent,#00D4FF,transparent);
-  height:1px;width:200px;
-}
-.circuit-1{top:20%;right:5%;width:300px;animation:circuitDrift 6s linear infinite}
-.circuit-2{bottom:20%;left:5%;width:250px;animation:circuitDrift 8s linear infinite reverse}
-@keyframes circuitDrift{0%{opacity:0.03}50%{opacity:0.1}100%{opacity:0.03}}
-
 /* ===== SCROLL INDICATOR ===== */
 .scroll-indicator{
   position:absolute;bottom:30px;left:50%;transform:translateX(-50%);z-index:3;
   display:flex;flex-direction:column;align-items:center;gap:6px;
-  color:#556688;font-size:0.7rem;letter-spacing:2px;
-  animation:fadeDown 2s ease-in-out infinite;
+  color:#94A3B8;font-size:0.7rem;letter-spacing:2px;
+  animation:scrollBounce 2s ease-in-out infinite;
 }
 .scroll-indicator .arrow{
-  width:16px;height:16px;border-right:2px solid #00D4FF;border-bottom:2px solid #00D4FF;
+  width:18px;height:18px;
+  border-right:2px solid #2563EB;border-bottom:2px solid #2563EB;
   transform:rotate(45deg);opacity:0.5;
 }
-@keyframes fadeDown{0%,100%{transform:translateX(-50%) translateY(0);opacity:0.6}50%{transform:translateX(-50%) translateY(8px);opacity:1}}
+@keyframes scrollBounce{
+  0%,100%{transform:translateX(-50%) translateY(0)}
+  50%{transform:translateX(-50%) translateY(10px)}
+}
 
 /* ===== CHINA HIGHLIGHT RIBBON ===== */
 .china-ribbon{
-  position:relative;display:inline-flex;align-items:center;gap:10px;
-  padding:4px 20px 4px 12px;border-radius:0 20px 20px 0;
-  background:linear-gradient(90deg,rgba(255,0,51,0.08),transparent);
-  border-left:3px solid #FF0033;
-  font-size:0.82rem;color:#FFD700;letter-spacing:1px;
+  display:inline-flex;align-items:center;gap:10px;
+  padding:6px 22px 6px 14px;border-radius:0 24px 24px 0;
+  background:linear-gradient(90deg,rgba(220,38,38,0.06),transparent);
+  border-left:4px solid #DC2626;
+  font-size:0.82rem;color:#DC2626;letter-spacing:1px;font-weight:500;
+  position:relative;
 }
 .china-ribbon::after{
-  content:'\2726';margin-left:4px;font-size:0.7rem;color:#FF0033;
-  animation:sparkle 2s ease-in-out infinite;
+  content:'✦';margin-left:4px;font-size:0.65rem;color:#F59E0B;
+  animation:sparkle 1.5s ease-in-out infinite;
 }
-@keyframes sparkle{0%,100%{opacity:0.4}50%{opacity:1}}
-
-/* ===== DATA STREAM ===== */
-.datastream{
-  position:fixed;top:0;right:20px;z-index:0;pointer-events:none;opacity:0.03;
-  font-family:monospace;font-size:0.6rem;color:#00D4FF;line-height:1.4;
-  writing-mode:vertical-rl;animation:dataFlow 20s linear infinite;
-}
-@keyframes dataFlow{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
+@keyframes sparkle{0%,100%{opacity:0.4;transform:scale(1)}50%{opacity:1;transform:scale(1.4)}}
 
 /* ===== PULSE RING ===== */
-.pulse-ring{position:absolute;border-radius:50%;border:1px solid rgba(0,212,255,0.15);animation:pulseExpand 3s ease-out infinite;pointer-events:none}
+.pulse-ring{position:absolute;border-radius:50%;border:1px solid rgba(37,99,235,0.1);animation:pulseExpand 3s ease-out infinite;pointer-events:none}
 @keyframes pulseExpand{0%{width:20px;height:20px;opacity:0.8}100%{width:200px;height:200px;opacity:0}}
 
 /* ===== FOOTER ===== */
 footer{
   position:relative;z-index:1;
-  background:rgba(8,12,26,0.9);border-top:1px solid rgba(0,212,255,0.08);
-  padding:40px 24px;text-align:center;font-size:0.82rem;color:#556688;
+  background:rgba(255,255,255,0.5);
+  border-top:1px solid rgba(37,99,235,0.06);
+  padding:40px 24px;text-align:center;font-size:0.82rem;color:#94A3B8;
 }
-footer strong{color:#8899BB}
-footer a{color:rgba(0,212,255,0.6)}
-footer a:hover{color:#00D4FF}
+footer strong{color:#475569}
+footer a{color:rgba(37,99,235,0.6)}
+footer a:hover{color:#2563EB}
 footer .author{
-  display:block;margin-top:12px;font-size:0.95rem;
-  background:linear-gradient(90deg,#00D4FF,#0088FF);
+  display:inline-block;margin-top:12px;font-size:0.95rem;font-weight:600;
+  background:linear-gradient(135deg,#1E40AF,#0EA5E9);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  letter-spacing:1px;
+  letter-spacing:1px;padding:6px 18px;border-radius:20px;
+  border:1px solid rgba(37,99,235,0.08);
+  transition:all 0.3s;
+}
+footer .author:hover{
+  border-color:rgba(37,99,235,0.2);
+  box-shadow:0 0 20px rgba(37,99,235,0.06);
 }
 
 /* ===== LOADING SCREEN ===== */
 #loader{
   position:fixed;top:0;left:0;width:100%;height:100%;
-  background:#080C1A;display:flex;align-items:center;justify-content:center;
-  z-index:10000;transition:opacity 0.8s,visibility 0.8s;
+  background:#F0F7FF;display:flex;align-items:center;justify-content:center;
+  z-index:10000;transition:opacity 0.6s,visibility 0.6s;
 }
 #loader.hidden{opacity:0;visibility:hidden}
-#loader .spinner{
-  width:50px;height:50px;border:3px solid rgba(0,212,255,0.1);
-  border-top-color:#00D4FF;border-radius:50%;
-  animation:spin 0.8s linear infinite;
+#loader .spinner-inner{position:relative;width:50px;height:50px}
+#loader .spinner-inner::before,#loader .spinner-inner::after{
+  content:'';position:absolute;top:0;left:0;width:100%;height:100%;border-radius:50%;
+  border:3px solid transparent;
+}
+#loader .spinner-inner::before{
+  border-top-color:#2563EB;animation:spin 0.7s linear infinite;
+}
+#loader .spinner-inner::after{
+  border-right-color:#0EA5E9;animation:spin 0.9s linear infinite reverse;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 #loader p{
-  margin-top:16px;color:#556688;font-size:0.85rem;letter-spacing:2px;
+  margin-top:18px;color:#64748B;font-size:0.85rem;letter-spacing:3px;
+  font-weight:500;
 }
+#loader .loader-bar{
+  width:200px;height:2px;background:rgba(37,99,235,0.06);border-radius:2px;
+  margin:16px auto 0;overflow:hidden;position:relative;
+}
+#loader .loader-bar::after{
+  content:'';position:absolute;top:0;left:-50%;width:50%;height:100%;
+  background:linear-gradient(90deg,transparent,#2563EB,transparent);
+  animation:loaderSweep 1.2s ease-in-out infinite;
+}
+@keyframes loaderSweep{0%{left:-50%}100%{left:100%}}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
   .hero h1{font-size:1.8rem}
-  .hero .china-em{font-size:1.3rem}
+  .hero .china-em{font-size:1.2rem}
   .hero-stats{gap:20px}
-  .hero-stat .num{font-size:1.6rem}
+  .hero-stat .num{font-size:1.8rem}
   .kpi-grid{grid-template-columns:repeat(2,1fr);gap:12px}
+  .kpi-card{padding:20px 16px}
+  .kpi-card .num{font-size:1.8rem}
   .timeline::before{left:20px}
   .timeline-row,.timeline-row:nth-child(odd){flex-direction:column;padding-left:44px}
   .timeline-row .col,.timeline-row:nth-child(odd) .col,.timeline-row:nth-child(even) .col{width:100%;padding:0;text-align:left}
   .timeline-dot{left:20px}
   .section{padding:50px 0}
-  .chart-box{padding:16px}
+  .chart-box{padding:18px}
   nav .links{gap:0}
   nav a{font-size:0.75rem;padding:6px 10px}
 }
 @media(max-width:480px){
   .kpi-grid{grid-template-columns:1fr 1fr;gap:10px}
-  .kpi-card{padding:16px}
-  .kpi-card .num{font-size:1.5rem}
+  .kpi-card{padding:14px}
+  .kpi-card .num{font-size:1.4rem}
   .hero h1{font-size:1.4rem}
   .hero .china-em{font-size:1rem}
 }
@@ -397,13 +468,19 @@ footer .author{
 <!-- Loading Screen -->
 <div id="loader">
   <div style="text-align:center">
-    <div class="spinner"></div>
-    <p>INITIALIZING DATA...</p>
+    <div class="spinner-inner"></div>
+    <div class="loader-bar"></div>
+    <p>系统加载中 · 请稍候</p>
   </div>
 </div>
 
-<!-- Data Stream Background -->
-<div class="datastream" id="dataStream"></div>
+<!-- Floating Geometric Background -->
+<div class="float-shapes">
+  <div class="float-shape"></div>
+  <div class="float-shape"></div>
+  <div class="float-shape"></div>
+  <div class="float-shape"></div>
+</div>
 
 <!-- Particle Canvas -->
 <canvas id="particleCanvas"></canvas>
@@ -413,10 +490,10 @@ footer .author{
 <div class="inner">
   <span class="logo">⟐ 制造业排行 2026</span>
   <div class="links">
-    <a href="#ranking">排名</a>
-    <a href="#china">中国</a>
-    <a href="#growth">增长</a>
-    <a href="#timeline">历程</a>
+    <a href="#ranking">排名 ▸</a>
+    <a href="#china">中国 ▸</a>
+    <a href="#growth">增长 ▸</a>
+    <a href="#timeline">历程 ▸</a>
   </div>
 </div>
 </nav>
@@ -424,11 +501,9 @@ footer .author{
 <!-- Hero -->
 <section class="hero">
   <div class="grid-bg"></div>
-  <div class="circuit circuit-1"></div>
-  <div class="circuit circuit-2"></div>
   <div class="hero-content">
-    <div class="badge"><span class="dot"></span> SYSTEM·2026 · 世界银行 · UNIDO 数据终端</div>
-    <h1>2026年世界各国<br>制造业排行</h1>
+    <div class="badge"><span class="dot"></span> 2026 · 世界银行 · UNIDO 数据终端</div>
+    <h1>2026年世界各国<br>制造业实力排行</h1>
     <span class="china-em">✦ 中国 · 全球第一制造强国 ✦</span>
     <p>制造业增加值（MVA）实力排名全景分析 — 中国制造业发展历程与核心数据</p>
     <div class="hero-stats">
@@ -439,7 +514,7 @@ footer .author{
     </div>
   </div>
   <div class="scroll-indicator">
-    <span>SCROLL</span>
+    <span>向下滚动</span>
     <div class="arrow"></div>
   </div>
 </section>
@@ -496,7 +571,7 @@ footer .author{
   <table>
     <thead><tr><th style="width:50px">#</th><th>国家</th><th>制造业增加值（万亿美元）</th><th>全球占比</th><th>备注</th></tr></thead>
     <tbody>
-      <tr><td><span class="rank-num">1</span></td><td style="color:#E0E6FF;font-weight:700">🇨🇳 中国</td><td style="color:#FFD700;font-weight:700">4.70</td><td style="color:#FFD700;font-weight:700">30.2%</td><td>全球第一制造大国</td></tr>
+      <tr><td><span class="rank-num">1</span></td><td style="font-weight:700">🇨🇳 中国</td><td style="font-weight:700">4.70</td><td style="font-weight:700">30.2%</td><td>全球第一制造大国</td></tr>
       <tr><td><span class="rank-num">2</span></td><td>🇺🇸 美国</td><td>2.50</td><td>16.4%</td><td>高端制造领先</td></tr>
       <tr><td><span class="rank-num">3</span></td><td>🇯🇵 日本</td><td>0.85</td><td>6.1%</td><td>精密制造优势</td></tr>
       <tr><td><span class="rank-num">4</span></td><td>🇩🇪 德国</td><td>0.75</td><td>5.3%</td><td>工业4.0发源地</td></tr>
@@ -520,7 +595,7 @@ footer .author{
 
 <!-- Section 3: China Global Share -->
 <section id="china" class="section">
-<div class="container">
+<div class="container fade-up">
   <h2 class="section-title">◆ 中国占全球制造业比重</h2>
   <p class="section-subtitle">主要国家制造业增加值占全球份额分布</p>
   <div class="divider"></div>
@@ -587,32 +662,32 @@ footer .author{
   <div class="timeline">
     <div class="timeline-row">
       <div class="col"><div class="timeline-year">1949 — 1957</div><div class="timeline-title">奠基起步</div><div class="timeline-desc">「一五」计划 156 个重点项目，奠定现代工业基础</div></div>
-      <div class="timeline-dot" style="border-color:#1565C0;box-shadow:0 0 12px rgba(21,101,192,0.3)"></div>
+      <div class="timeline-dot" style="border-color:#1565C0"></div>
       <div class="col"></div>
     </div>
     <div class="timeline-row">
       <div class="col"></div>
-      <div class="timeline-dot" style="border-color:#556688;box-shadow:0 0 12px rgba(85,102,136,0.3)"></div>
+      <div class="timeline-dot" style="border-color:#64748B"></div>
       <div class="col"><div class="timeline-year">1958 — 1978</div><div class="timeline-title">自主探索</div><div class="timeline-desc">三线建设，建立独立工业体系，突破技术封锁</div></div>
     </div>
     <div class="timeline-row">
       <div class="col"><div class="timeline-year">1978 — 2000</div><div class="timeline-title">改革开放</div><div class="timeline-desc">沿海开放战略，外资技术引入，乡镇企业崛起</div></div>
-      <div class="timeline-dot" style="border-color:#00897B;box-shadow:0 0 12px rgba(0,137,123,0.3)"></div>
+      <div class="timeline-dot" style="border-color:#0D9488"></div>
       <div class="col"></div>
     </div>
     <div class="timeline-row">
       <div class="col"></div>
-      <div class="timeline-dot" style="border-color:#0088FF;box-shadow:0 0 12px rgba(0,136,255,0.3)"></div>
+      <div class="timeline-dot" style="border-color:#2563EB"></div>
       <div class="col"><div class="timeline-year">2001 — 2010</div><div class="timeline-title">WTO时代 · 崛起</div><div class="timeline-desc">2001年加入WTO，2010年超越美国成为第一制造大国</div></div>
     </div>
     <div class="timeline-row">
       <div class="col"><div class="timeline-year">2010 — 2020</div><div class="timeline-title">转型升级</div><div class="timeline-desc">「中国制造2025」战略，新兴产业全面崛起</div></div>
-      <div class="timeline-dot" style="border-color:#FB8C00;box-shadow:0 0 12px rgba(251,140,0,0.3)"></div>
+      <div class="timeline-dot" style="border-color:#F59E0B"></div>
       <div class="col"></div>
     </div>
     <div class="timeline-row">
       <div class="col"></div>
-      <div class="timeline-dot" style="border-color:#FF0033;box-shadow:0 0 12px rgba(255,0,51,0.3)"></div>
+      <div class="timeline-dot" style="border-color:#DC2626"></div>
       <div class="col"><div class="timeline-year">2020 — 2026</div><div class="timeline-title">引领时代</div><div class="timeline-desc">疫后产能爆发，全球份额超 30%，新能源·AI制造领先全球</div></div>
     </div>
   </div>
@@ -629,21 +704,21 @@ footer .author{
     <p>世界500强数据来源于《财富》杂志 · 就业人口数据来源于 ILO 国际劳工组织</p>
     <p>制造业增加值（MVA）为当前美元计价，部分数据为估算值</p>
     <span class="author">⟐ 作者：foy.fan@outlook.com</span>
-    <p style="margin-top:16px;color:rgba(255,255,255,0.15)">© 2024-2026 全球制造业排行 · All Rights Reserved</p>
+    <p style="margin-top:16px;color:rgba(0,0,0,0.15)">© 2024-2026 全球制造业排行 · All Rights Reserved</p>
   </div>
 </footer>
 
 <script>
 // ===== LOADER =====
 window.addEventListener('load',()=>{
-  setTimeout(()=>document.getElementById('loader').classList.add('hidden'),500);
+  setTimeout(()=>document.getElementById('loader').classList.add('hidden'),600);
 });
 
 // ===== PARTICLE SYSTEM =====
 const canvas = document.getElementById('particleCanvas');
 const ctx = canvas.getContext('2d');
 let particles = [];
-let mouse = {x:0,y:0};
+let mouse = {x:0,y:0,active:false};
 let W,H;
 
 function resize(){
@@ -658,60 +733,47 @@ class Particle{
   reset(){
     this.x=Math.random()*W;
     this.y=Math.random()*H;
-    this.vx=(Math.random()-0.5)*0.5;
-    this.vy=(Math.random()-0.5)*0.5;
-    this.r=Math.random()*2+0.5;
-    this.alpha=Math.random()*0.5+0.1;
+    this.vx=(Math.random()-0.5)*0.6;
+    this.vy=(Math.random()-0.5)*0.6;
+    this.r=Math.random()*2.5+0.5;
+    this.alpha=Math.random()*0.4+0.15;
   }
   update(){
     this.x+=this.vx;this.y+=this.vy;
     if(this.x<0||this.x>W||this.y<0||this.y>H) this.reset();
-    // mouse interaction
     const dx=mouse.x-this.x,dy=mouse.y-this.y,dist=Math.sqrt(dx*dx+dy*dy);
-    if(dist<120){this.vx-=dx*0.0003;this.vy-=dy*0.0003}
-    this.vx*=0.99;this.vy*=0.99;
+    if(dist<150){this.vx+=dx*0.0005;this.vy+=dy*0.0005}
+    this.vx*=0.98;this.vy*=0.98;
   }
   draw(){
     ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
-    ctx.fillStyle='rgba(0,212,255,'+this.alpha+')';
+    ctx.fillStyle='rgba(37,99,235,'+this.alpha+')';
     ctx.fill();
   }
 }
 
-for(let i=0;i<120;i++) particles.push(new Particle());
+for(let i=0;i<100;i++) particles.push(new Particle());
 
-let animId;
 function animate(){
   ctx.clearRect(0,0,W,H);
   particles.forEach(function(p){p.update();p.draw()});
-  // draw connections
   for(let i=0;i<particles.length;i++){
     for(let j=i+1;j<particles.length;j++){
       const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);
-      if(dist<150){
+      if(dist<140){
         ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
         ctx.lineTo(particles[j].x,particles[j].y);
-        ctx.strokeStyle='rgba(0,212,255,'+(0.08*(1-dist/150))+')';
-        ctx.lineWidth=0.5;ctx.stroke();
+        ctx.strokeStyle='rgba(37,99,235,'+(0.06*(1-dist/140))+')';
+        ctx.lineWidth=0.6;ctx.stroke();
       }
     }
   }
-  animId=requestAnimationFrame(animate);
+  requestAnimationFrame(animate);
 }
 animate();
 
 document.addEventListener('mousemove',function(e){mouse.x=e.clientX;mouse.y=e.clientY});
-
-// ===== DATA STREAM =====
-const streamEl=document.getElementById('dataStream');
-let streamTxt='';
-const chars='0123456789ABCDEF';
-for(let i=0;i<30;i++){
-  let line='';
-  for(let j=0;j<20;j++) line+=chars[Math.floor(Math.random()*chars.length)];
-  streamTxt+=line+'\n';
-}
-streamEl.textContent=streamTxt;
+document.addEventListener('mouseleave',function(){mouse.x=-999;mouse.y=-999});
 
 // ===== SCROLL NAV =====
 const nav=document.getElementById('nav');
@@ -724,7 +786,7 @@ const io=new IntersectionObserver(function(entries){
   entries.forEach(function(e){
     if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}
   });
-},{threshold:0.1});
+},{threshold:0.08});
 document.querySelectorAll('.fade-up').forEach(function(el){io.observe(el)});
 
 // ===== COUNTER ANIMATION =====
@@ -738,13 +800,12 @@ const counterIO=new IntersectionObserver(function(entries){
       const start=performance.now();
       const isDecimal=target%1!==0;
       const decimals=isDecimal?1:0;
-      (function(){
+      (function tick(){
         const now=performance.now();
         const progress=Math.min((now-start)/duration,1);
         const eased=1-Math.pow(1-progress,3);
-        const val=target*eased;
-        el.textContent=isDecimal?val.toFixed(decimals):Math.round(val);
-        if(progress<1) requestAnimationFrame(arguments.callee);
+        el.textContent=isDecimal?(target*eased).toFixed(decimals):Math.round(target*eased);
+        if(progress<1) requestAnimationFrame(tick);
       })();
       counterIO.unobserve(el);
     }
@@ -762,12 +823,12 @@ const heroIO=new IntersectionObserver(function(entries){
       const duration=2000;
       const start=performance.now();
       const isDecimal=target%1!==0;
-      (function(){
+      (function tick(){
         const now=performance.now();
         const progress=Math.min((now-start)/duration,1);
         const eased=1-Math.pow(1-progress,3);
-        el.textContent=isDecimal?target.toFixed(1):Math.round(target*eased);
-        if(progress<1) requestAnimationFrame(arguments.callee); else el.textContent=target;
+        el.textContent=isDecimal?(target*eased).toFixed(1):Math.round(target*eased);
+        if(progress<1) requestAnimationFrame(tick); else el.textContent=target;
       })();
       heroIO.unobserve(el);
     }
@@ -778,10 +839,8 @@ document.querySelectorAll('.hero-stat .num').forEach(function(el){heroIO.observe
 // ===== CHARTS =====
 Chart.defaults.font.family="'PingFang SC','Microsoft YaHei',sans-serif";
 Chart.defaults.font.size=12;
-Chart.defaults.color='#667799';
-Chart.defaults.plugins.legend.labels.color='#8899BB';
 
-// 1. Ranking bar chart (horizontal)
+// 1. Ranking bar chart
 const rankCtx=document.getElementById('rankChart').getContext('2d');
 const rankData=[
   {c:'中国',v:4.70},{c:'美国',v:2.50},{c:'日本',v:0.85},{c:'德国',v:0.75},
@@ -796,10 +855,10 @@ new Chart(rankCtx,{
     datasets:[{
       label:'MVA (万亿美元)',
       data:rankData.map(function(d){return d.v}),
-      backgroundColor:rankData.map(function(d,i){return i===0?'rgba(255,0,51,0.85)':'rgba(0,212,255,0.55)'}),
-      borderColor:rankData.map(function(d,i){return i===0?'#FF0033':'#00D4FF'}),
+      backgroundColor:rankData.map(function(d,i){return i===0?'rgba(220,38,38,0.8)':'rgba(37,99,235,0.5)'}),
+      borderColor:rankData.map(function(d,i){return i===0?'#DC2626':'#2563EB'}),
       borderWidth:1,
-      borderRadius:3,
+      borderRadius:4,
       barThickness:18
     }]
   },
@@ -808,10 +867,10 @@ new Chart(rankCtx,{
     plugins:{
       legend:{display:false},
       tooltip:{
-        backgroundColor:'rgba(8,12,26,0.95)',
-        titleColor:'#00D4FF',
-        bodyColor:'#C8D6E5',
-        borderColor:'rgba(0,212,255,0.2)',
+        backgroundColor:'rgba(255,255,255,0.96)',
+        titleColor:'#1E40AF',
+        bodyColor:'#1E293B',
+        borderColor:'rgba(37,99,235,0.15)',
         borderWidth:1,
         padding:12,
         callbacks:{label:function(ctx){return ctx.parsed.x+' 万亿美元'}}
@@ -819,14 +878,14 @@ new Chart(rankCtx,{
     },
     scales:{
       x:{
-        grid:{color:'rgba(0,212,255,0.06)'},
-        ticks:{color:'#556688',font:{size:11}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        grid:{color:'rgba(37,99,235,0.06)'},
+        ticks:{color:'#94A3B8',font:{size:11}},
+        border:{color:'rgba(37,99,235,0.08)'}
       },
       y:{
         grid:{display:false},
-        ticks:{color:'#8899BB',font:{size:11}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        ticks:{color:'#64748B',font:{size:11}},
+        border:{color:'rgba(37,99,235,0.08)'}
       }
     }
   }
@@ -840,8 +899,8 @@ new Chart(pieCtx,{
     labels:['中国 30.2%','美国 16.4%','日本 6.1%','德国 5.3%','印度 3.2%','韩国 3.0%','其他 35.8%'],
     datasets:[{
       data:[30.2,16.4,6.1,5.3,3.2,3.0,35.8],
-      backgroundColor:['#FF0033','#00D4FF','#0088FF','#00897B','#FB8C00','#7CB342','rgba(0,212,255,0.12)'],
-      borderWidth:2,borderColor:'#080C1A'
+      backgroundColor:['#DC2626','#2563EB','#0EA5E9','#0D9488','#F59E0B','#84CC16','rgba(37,99,235,0.08)'],
+      borderWidth:3,borderColor:'#fff'
     }]
   },
   options:{
@@ -850,15 +909,15 @@ new Chart(pieCtx,{
       legend:{
         position:'right',
         labels:{
-          color:'#8899BB',font:{size:12},padding:14,
+          color:'#475569',font:{size:12},padding:14,
           usePointStyle:true,pointStyle:'circle'
         }
       },
       tooltip:{
-        backgroundColor:'rgba(8,12,26,0.95)',
-        titleColor:'#00D4FF',
-        bodyColor:'#C8D6E5',
-        borderColor:'rgba(0,212,255,0.2)',
+        backgroundColor:'rgba(255,255,255,0.96)',
+        titleColor:'#1E40AF',
+        bodyColor:'#1E293B',
+        borderColor:'rgba(37,99,235,0.15)',
         borderWidth:1,
         padding:12,
         callbacks:{label:function(ctx){return ctx.label}}
@@ -876,8 +935,8 @@ new Chart(indCtx,{
     datasets:[{
       label:'产值 (万亿美元)',
       data:[1.03,0.66,0.56,0.52,0.42,0.33,0.28,0.22],
-      backgroundColor:['#FF0033','#00D4FF','#0088FF','#00897B','#FB8C00','#7CB342','#8E24AA','#D81B60'].map(function(c){return c+'cc'}),
-      borderColor:['#FF0033','#00D4FF','#0088FF','#00897B','#FB8C00','#7CB342','#8E24AA','#D81B60'],
+      backgroundColor:['#DC2626','#2563EB','#0EA5E9','#0D9488','#F59E0B','#84CC16','#8B5CF6','#EC4899'].map(function(c){return c+'cc'}),
+      borderColor:['#DC2626','#2563EB','#0EA5E9','#0D9488','#F59E0B','#84CC16','#8B5CF6','#EC4899'],
       borderWidth:1,
       borderRadius:4
     }]
@@ -887,10 +946,10 @@ new Chart(indCtx,{
     plugins:{
       legend:{display:false},
       tooltip:{
-        backgroundColor:'rgba(8,12,26,0.95)',
-        titleColor:'#00D4FF',
-        bodyColor:'#C8D6E5',
-        borderColor:'rgba(0,212,255,0.2)',
+        backgroundColor:'rgba(255,255,255,0.96)',
+        titleColor:'#1E40AF',
+        bodyColor:'#1E293B',
+        borderColor:'rgba(37,99,235,0.15)',
         borderWidth:1,
         padding:12,
         callbacks:{label:function(ctx){return ctx.parsed.y+' 万亿美元'}}
@@ -899,14 +958,14 @@ new Chart(indCtx,{
     scales:{
       y:{
         beginAtZero:true,
-        grid:{color:'rgba(0,212,255,0.06)'},
-        ticks:{color:'#556688',font:{size:11}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        grid:{color:'rgba(37,99,235,0.06)'},
+        ticks:{color:'#94A3B8',font:{size:11}},
+        border:{color:'rgba(37,99,235,0.08)'}
       },
       x:{
         grid:{display:false},
-        ticks:{color:'#8899BB',font:{size:11}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        ticks:{color:'#64748B',font:{size:11}},
+        border:{color:'rgba(37,99,235,0.08)'}
       }
     }
   }
@@ -921,13 +980,14 @@ new Chart(growthCtx,{
     datasets:[{
       label:'制造业增加值 (万亿美元)',
       data:[0.50,0.55,0.70,1.00,1.50,1.90,2.30,2.80,3.10,3.70,3.90,4.40,4.70],
-      borderColor:'#00D4FF',
+      borderColor:'#2563EB',
       backgroundColor:(function(){
         var grad;
         return function(ctx){
-          if(!grad){grad=ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
-          grad.addColorStop(0,'rgba(0,212,255,0.3)');
-          grad.addColorStop(1,'rgba(0,212,255,0.01)');
+          if(!grad||grad.__destroyed){
+            grad=ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
+            grad.addColorStop(0,'rgba(37,99,235,0.25)');
+            grad.addColorStop(1,'rgba(37,99,235,0.01)');
           }
           return grad;
         };
@@ -935,13 +995,14 @@ new Chart(growthCtx,{
       fill:true,
       tension:0.4,
       pointBackgroundColor:function(ctx){
-        return ctx.dataIndex===ctx.dataset.data.length-1?'#FF0033':'#00D4FF';
+        return ctx.dataIndex===ctx.dataset.data.length-1?'#DC2626':'#2563EB';
       },
       pointBorderColor:function(ctx){
-        return ctx.dataIndex===ctx.dataset.data.length-1?'#FF0033':'#00D4FF';
+        return ctx.dataIndex===ctx.dataset.data.length-1?'#DC2626':'#fff';
       },
-      pointRadius:function(ctx){return ctx.dataIndex===ctx.dataset.data.length-1?7:4},
-      pointHoverRadius:8,
+      pointBorderWidth:2,
+      pointRadius:function(ctx){return ctx.dataIndex===ctx.dataset.data.length-1?8:4},
+      pointHoverRadius:10,
       borderWidth:3
     }]
   },
@@ -950,10 +1011,10 @@ new Chart(growthCtx,{
     plugins:{
       legend:{display:false},
       tooltip:{
-        backgroundColor:'rgba(8,12,26,0.95)',
-        titleColor:'#00D4FF',
-        bodyColor:'#C8D6E5',
-        borderColor:'rgba(0,212,255,0.2)',
+        backgroundColor:'rgba(255,255,255,0.96)',
+        titleColor:'#1E40AF',
+        bodyColor:'#1E293B',
+        borderColor:'rgba(37,99,235,0.15)',
         borderWidth:1,
         padding:12,
         callbacks:{label:function(ctx){return ctx.parsed.y+' 万亿美元'}}
@@ -962,39 +1023,39 @@ new Chart(growthCtx,{
     scales:{
       y:{
         beginAtZero:true,
-        grid:{color:'rgba(0,212,255,0.06)'},
-        ticks:{color:'#556688',font:{size:11}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        grid:{color:'rgba(37,99,235,0.06)'},
+        ticks:{color:'#94A3B8',font:{size:11}},
+        border:{color:'rgba(37,99,235,0.08)'}
       },
       x:{
         grid:{display:false},
-        ticks:{color:'#8899BB',font:{size:11}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        ticks:{color:'#64748B',font:{size:11}},
+        border:{color:'rgba(37,99,235,0.08)'}
       }
     }
   }
 });
 
-// 5. China vs USA compare
+// 5. Compare chart
 const cmpCtx=document.getElementById('compareChart').getContext('2d');
 new Chart(cmpCtx,{
   type:'bar',
   data:{
-    labels:['MVA\n(万亿$)','全球\n占比(%)','就业\n(百万人)','工业\n门类(个)','500强\n工业(家)','占GDP\n比重(%)'],
+    labels:['MVA\\n(万亿$)','全球\\n占比(%)','就业\\n(百万人)','工业\\n门类(个)','500强\\n工业(家)','占GDP\\n比重(%)'],
     datasets:[
       {
         label:'中国',
         data:[4.7,30.2,150,41,52,26.8],
-        backgroundColor:'rgba(255,0,51,0.8)',
-        borderColor:'#FF0033',
+        backgroundColor:'rgba(220,38,38,0.75)',
+        borderColor:'#DC2626',
         borderWidth:1,
         borderRadius:4
       },
       {
         label:'美国',
         data:[2.5,16.4,12.8,30,28,11.0],
-        backgroundColor:'rgba(0,212,255,0.5)',
-        borderColor:'#00D4FF',
+        backgroundColor:'rgba(37,99,235,0.45)',
+        borderColor:'#2563EB',
         borderWidth:1,
         borderRadius:4
       }
@@ -1004,13 +1065,13 @@ new Chart(cmpCtx,{
     responsive:true,maintainAspectRatio:true,
     plugins:{
       legend:{
-        labels:{color:'#8899BB',font:{size:12},usePointStyle:true}
+        labels:{color:'#475569',font:{size:12},usePointStyle:true}
       },
       tooltip:{
-        backgroundColor:'rgba(8,12,26,0.95)',
-        titleColor:'#00D4FF',
-        bodyColor:'#C8D6E5',
-        borderColor:'rgba(0,212,255,0.2)',
+        backgroundColor:'rgba(255,255,255,0.96)',
+        titleColor:'#1E40AF',
+        bodyColor:'#1E293B',
+        borderColor:'rgba(37,99,235,0.15)',
         borderWidth:1,
         padding:12,
         mode:'index'
@@ -1019,14 +1080,14 @@ new Chart(cmpCtx,{
     scales:{
       y:{
         beginAtZero:true,
-        grid:{color:'rgba(0,212,255,0.06)'},
-        ticks:{color:'#556688',font:{size:10}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        grid:{color:'rgba(37,99,235,0.06)'},
+        ticks:{color:'#94A3B8',font:{size:10}},
+        border:{color:'rgba(37,99,235,0.08)'}
       },
       x:{
         grid:{display:false},
-        ticks:{color:'#8899BB',font:{size:10}},
-        border:{color:'rgba(0,212,255,0.1)'}
+        ticks:{color:'#64748B',font:{size:10}},
+        border:{color:'rgba(37,99,235,0.08)'}
       }
     }
   }
