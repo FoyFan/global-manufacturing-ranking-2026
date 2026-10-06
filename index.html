@@ -7,150 +7,411 @@
 <meta name="description" content="基于世界银行、UNIDO数据的全球制造业实力排名与中国制造业发展数据分析">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 <style>
-:root {
-  --primary: #1565C0;
-  --primary-light: #42A5F5;
-  --primary-dark: #0D47A1;
-  --secondary: #00897B;
-  --accent: #FB8C00;
-  --accent-dark: #E65100;
-  --bg: #FFFFFF;
-  --bg-alt: #F3F5F9;
-  --card: #FFFFFF;
-  --text: #1E1E2E;
-  --text-secondary: #666666;
-  --text-light: #999999;
-  --border: #E8EAF0;
-  --radius: 12px;
-  --shadow: 0 2px 12px rgba(0,0,0,0.06);
-  --shadow-hover: 0 6px 24px rgba(0,0,0,0.10);
-}
+/* ===== RESET ===== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;font-size:16px}
+html{scroll-behavior:smooth}
 body{
-  font-family: 'PingFang SC','Microsoft YaHei','Noto Sans SC',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  color:var(--text);background:var(--bg);line-height:1.7;
-  -webkit-font-smoothing:antialiased;
+  font-family: 'PingFang SC','Microsoft YaHei','Noto Sans SC','Segoe UI',sans-serif;
+  background:#080C1A;color:#C8D6E5;line-height:1.7;
+  overflow-x:hidden;
 }
-a{color:var(--primary);text-decoration:none}
-img{max-width:100%}
+a{color:#00D4FF;text-decoration:none}
+::selection{background:rgba(0,212,255,0.3);color:#fff}
 
-/* Nav */
-nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
-nav .inner{max-width:1200px;margin:0 auto;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
-nav .logo{font-weight:800;font-size:1.1rem;color:var(--primary)}
-nav a{color:var(--text-secondary);font-size:0.875rem;margin-left:24px;transition:color 0.2s}
-nav a:hover{color:var(--primary)}
+/* ===== SCANLINE OVERLAY ===== */
+body::after{
+  content:'';position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:9999;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,0.015) 2px,rgba(0,212,255,0.015) 4px);
+}
 
-/* Hero */
-.hero{background:linear-gradient(135deg,#1565C0 0%,#0D47A1 50%,#002171 100%);padding:80px 24px 70px;text-align:center;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(66,165,245,0.15) 0%,transparent 60%);pointer-events:none}
-.hero h1{font-size:2.8rem;font-weight:800;color:#fff;margin-bottom:12px;letter-spacing:2px}
-.hero p{font-size:1.05rem;color:rgba(255,255,255,0.8);max-width:700px;margin:0 auto}
-.hero .badge{display:inline-block;background:rgba(255,255,255,0.12);backdrop-filter:blur(4px);padding:6px 18px;border-radius:20px;font-size:0.85rem;color:rgba(255,255,255,0.85);margin-bottom:20px}
+/* ===== NAV ===== */
+nav{
+  position:fixed;top:0;left:0;width:100%;z-index:1000;
+  background:rgba(8,12,26,0.85);backdrop-filter:blur(16px);
+  border-bottom:1px solid rgba(0,212,255,0.15);
+  transition:box-shadow 0.3s;
+}
+nav.scrolled{box-shadow:0 0 30px rgba(0,212,255,0.08)}
+nav .inner{
+  max-width:1200px;margin:0 auto;padding:0 24px;
+  height:60px;display:flex;align-items:center;justify-content:space-between;
+}
+nav .logo{
+  font-weight:800;font-size:1.05rem;
+  background:linear-gradient(90deg,#00D4FF,#0088FF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:1px;
+}
+nav .links{display:flex;gap:4px}
+nav a{
+  color:#8899BB;font-size:0.82rem;padding:6px 14px;border-radius:6px;
+  transition:all 0.3s;letter-spacing:0.5px;
+}
+nav a:hover{
+  color:#00D4FF;background:rgba(0,212,255,0.08);
+  text-shadow:0 0 12px rgba(0,212,255,0.4);
+}
 
-/* Container */
-.container{max-width:1200px;margin:0 auto;padding:0 24px}
+/* ===== PARTICLE CANVAS ===== */
+#particleCanvas{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;
+}
 
-/* Section */
-.section{padding:60px 0}
-.section-alt{background:var(--bg-alt)}
-.section-title{font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:8px;text-align:center}
-.section-subtitle{font-size:0.95rem;color:var(--text-secondary);text-align:center;margin-bottom:40px}
-.divider{width:60px;height:4px;background:var(--primary);border-radius:2px;margin:12px auto 36px}
+/* ===== HERO ===== */
+.hero{
+  position:relative;z-index:1;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  padding:100px 24px 60px;text-align:center;overflow:hidden;
+}
+.hero::before{
+  content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;
+  background:radial-gradient(ellipse at 50% 40%,rgba(0,212,255,0.06) 0%,transparent 60%),
+              radial-gradient(ellipse at 50% 60%,rgba(255,0,51,0.04) 0%,transparent 50%);
+  pointer-events:none;animation:heroPulse 8s ease-in-out infinite;
+}
+@keyframes heroPulse{
+  0%,100%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.05);opacity:0.7}
+}
+.hero .grid-bg{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;mask-image:radial-gradient(ellipse at center,black 30%,transparent 70%);
+  -webkit-mask-image:radial-gradient(ellipse at center,black 30%,transparent 70%);
+}
+.hero-content{position:relative;z-index:2;max-width:900px}
+.hero .badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);
+  padding:6px 18px;border-radius:20px;font-size:0.78rem;
+  color:rgba(0,212,255,0.8);margin-bottom:28px;letter-spacing:1px;
+}
+.hero .badge .dot{width:6px;height:6px;border-radius:50%;background:#00D4FF;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.hero h1{
+  font-size:3.2rem;font-weight:800;line-height:1.2;margin-bottom:16px;
+  background:linear-gradient(135deg,#00D4FF 0%,#0088FF 30%,#00D4FF 70%,#66E0FF 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 4s linear infinite;
+  letter-spacing:3px;
+}
+@keyframes shimmer{0%{background-position:0% center}100%{background-position:200% center}}
+.hero .china-em{
+  display:block;margin-top:6px;
+  font-size:2rem;letter-spacing:4px;
+  background:linear-gradient(90deg,#FFD700,#FF0033,#FFD700);
+  background-size:200% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 3s linear infinite;
+}
+.hero p{
+  font-size:1.05rem;color:#8899BB;max-width:650px;margin:0 auto 32px;
+  letter-spacing:0.5px;
+}
+.hero-stats{
+  display:flex;justify-content:center;gap:40px;flex-wrap:wrap;margin-top:36px;
+}
+.hero-stat{
+  text-align:center;
+}
+.hero-stat .num{
+  font-size:2.4rem;font-weight:800;
+  background:linear-gradient(135deg,#00D4FF,#66E0FF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.hero-stat .num.gold{
+  background:linear-gradient(135deg,#FFD700,#FF8C00);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero-stat .label{font-size:0.78rem;color:#667799;margin-top:6px;letter-spacing:1px}
 
-/* Chart */
-.chart-box{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px;margin-bottom:32px}
-.chart-box h3{font-size:1.1rem;font-weight:600;color:var(--text);margin-bottom:20px}
-.chart-wrap{position:relative;width:100%;max-height:500px}
-.chart-wrap canvas{width:100%!important;height:auto!important;max-height:480px}
+/* ===== SECTION COMMON ===== */
+.section{
+  position:relative;z-index:1;padding:80px 0;
+}
+.section-alt{background:rgba(0,212,255,0.02)}
+.section::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.2),transparent);
+}
+.container{max-width:1200px;margin:0 auto;padding:0 24px;position:relative;z-index:1}
 
-/* KPI Cards */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:32px}
-.kpi-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;text-align:center;transition:transform 0.3s,box-shadow 0.3s;border-left:4px solid var(--primary)}
-.kpi-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover)}
-.kpi-card:nth-child(1){border-left-color:var(--primary)}
-.kpi-card:nth-child(2){border-left-color:var(--secondary)}
-.kpi-card:nth-child(3){border-left-color:var(--accent)}
-.kpi-card:nth-child(4){border-left-color:#FFB300}
-.kpi-card .num{font-size:2rem;font-weight:800;color:var(--primary);line-height:1.2}
-.kpi-card:nth-child(2) .num{color:var(--secondary)}
-.kpi-card:nth-child(3) .num{color:var(--accent)}
-.kpi-card:nth-child(4) .num{color:#FFB300}
-.kpi-card .label{font-size:0.85rem;color:var(--text-secondary);margin-top:4px}
-.kpi-card .desc{font-size:0.78rem;color:var(--text-light);margin-top:2px}
+.section-title{
+  font-size:1.5rem;font-weight:700;text-align:center;margin-bottom:6px;
+  background:linear-gradient(90deg,#00D4FF,#0088FF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:2px;
+}
+.section-subtitle{
+  font-size:0.88rem;color:#667799;text-align:center;margin-bottom:36px;letter-spacing:0.5px;
+}
+.divider{
+  width:80px;height:3px;margin:12px auto 36px;border-radius:2px;
+  background:linear-gradient(90deg,#00D4FF,transparent);position:relative;
+}
+.divider::after{
+  content:'';position:absolute;right:-3px;top:-2px;
+  width:7px;height:7px;border-radius:50%;background:#00D4FF;
+  box-shadow:0 0 10px #00D4FF;
+}
 
-/* Timeline */
-.timeline{position:relative;padding:20px 0}
-.timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:3px;background:var(--border);transform:translateX(-50%)}
-.timeline-row{display:flex;margin-bottom:24px;position:relative}
+/* ===== CHART BOX ===== */
+.chart-box{
+  background:rgba(10,16,36,0.75);
+  border:1px solid rgba(0,212,255,0.12);
+  border-radius:16px;padding:28px;margin-bottom:36px;
+  backdrop-filter:blur(8px);
+  transition:border-color 0.3s,box-shadow 0.3s;
+}
+.chart-box:hover{
+  border-color:rgba(0,212,255,0.25);
+  box-shadow:0 0 40px rgba(0,212,255,0.04);
+}
+.chart-box h3{
+  font-size:1rem;font-weight:600;color:#8899BB;margin-bottom:20px;
+  letter-spacing:0.5px;
+}
+.chart-wrap{position:relative;width:100%}
+.chart-wrap canvas{width:100%!important;max-height:460px}
+
+/* ===== KPI CARDS ===== */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:32px;
+}
+.kpi-card{
+  background:rgba(10,16,36,0.7);border:1px solid rgba(0,212,255,0.1);
+  border-radius:14px;padding:24px;text-align:center;
+  backdrop-filter:blur(6px);transition:all 0.4s;overflow:hidden;position:relative;
+}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;width:100%;height:3px;
+  background:linear-gradient(90deg,#00D4FF,#0088FF);opacity:0.6;
+}
+.kpi-card:nth-child(1)::before{background:linear-gradient(90deg,#FFD700,#FF0033)}
+.kpi-card:hover{
+  border-color:rgba(0,212,255,0.3);transform:translateY(-4px);
+  box-shadow:0 8px 40px rgba(0,212,255,0.06);
+}
+.kpi-card:nth-child(1):hover{border-color:rgba(255,0,51,0.3);box-shadow:0 8px 40px rgba(255,0,51,0.06)}
+.kpi-card .num{
+  font-size:2.2rem;font-weight:800;line-height:1.1;margin-bottom:2px;
+}
+.kpi-card:nth-child(1) .num{
+  background:linear-gradient(135deg,#FFD700,#FF0033);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.kpi-card .num{
+  background:linear-gradient(135deg,#00D4FF,#66E0FF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.kpi-card .label{font-size:0.85rem;color:#8899BB;margin-bottom:2px;letter-spacing:0.5px}
+.kpi-card .desc{font-size:0.75rem;color:#556688}
+
+/* ===== INSIGHT BANNER ===== */
+.insight{
+  background:rgba(0,212,255,0.04);border-left:3px solid #00D4FF;
+  padding:16px 22px;border-radius:0 10px 10px 0;margin:24px 0;
+  font-size:0.88rem;color:#8899BB;
+}
+.insight strong{color:#00D4FF}
+
+/* ===== TABLE ===== */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:0.85rem}
+th{
+  background:rgba(0,212,255,0.08);color:#00D4FF;padding:12px 16px;
+  text-align:left;font-weight:600;letter-spacing:0.5px;
+  border-bottom:1px solid rgba(0,212,255,0.1);
+}
+td{padding:10px 16px;border-bottom:1px solid rgba(0,212,255,0.05);color:#8899BB}
+tr:hover td{background:rgba(0,212,255,0.03)}
+tr:nth-child(1) td{color:#E0E6FF}
+tr:nth-child(1) td:first-child{color:#FFD700}
+.rank-num{
+  display:inline-flex;width:26px;height:26px;align-items:center;justify-content:center;
+  border-radius:50%;font-weight:700;font-size:0.75rem;
+  background:rgba(0,212,255,0.1);color:#00D4FF;
+}
+tr:nth-child(1) .rank-num{
+  background:linear-gradient(135deg,#FF0033,#FFD700);color:#fff;
+  box-shadow:0 0 12px rgba(255,0,51,0.3);
+}
+tr:nth-child(2) .rank-num{background:rgba(0,212,255,0.2);color:#00D4FF}
+tr:nth-child(3) .rank-num{background:rgba(0,136,255,0.2);color:#0088FF}
+tr:nth-child(4) .rank-num{background:rgba(255,140,0,0.2);color:#FF8C00}
+
+/* ===== TIMELINE ===== */
+.timeline{position:relative;padding:24px 0}
+.timeline::before{
+  content:'';position:absolute;left:50%;top:0;bottom:0;
+  width:2px;background:linear-gradient(to bottom,transparent,#00D4FF,transparent);
+  transform:translateX(-50%);
+}
+.timeline-row{
+  display:flex;margin-bottom:28px;position:relative;align-items:flex-start;
+}
 .timeline-row:nth-child(odd){flex-direction:row-reverse}
-.timeline-row .col{width:50%;padding:0 30px}
+.timeline-row .col{width:50%;padding:0 32px}
 .timeline-row:nth-child(odd) .col{padding-left:40px}
 .timeline-row:nth-child(even) .col{padding-right:40px;text-align:right}
-.timeline-dot{position:absolute;left:50%;top:8px;width:14px;height:14px;border-radius:50%;background:var(--primary);border:3px solid var(--bg);transform:translateX(-50%);z-index:1}
-.timeline-year{font-weight:700;font-size:0.95rem;color:var(--primary)}
-.timeline-title{font-weight:600;font-size:1rem;margin:2px 0 4px}
-.timeline-desc{font-size:0.85rem;color:var(--text-secondary)}
+.timeline-dot{
+  position:absolute;left:50%;top:6px;
+  width:16px;height:16px;border-radius:50%;
+  background:#080C1A;border:3px solid #00D4FF;
+  transform:translateX(-50%);z-index:2;
+  box-shadow:0 0 12px rgba(0,212,255,0.3);
+  transition:box-shadow 0.3s;
+}
+.timeline-row:hover .timeline-dot{box-shadow:0 0 24px rgba(0,212,255,0.6)}
+.timeline-year{font-weight:700;font-size:0.9rem;color:#00D4FF;letter-spacing:1px}
+.timeline-title{font-weight:600;font-size:1rem;margin:4px 0 6px;color:#E0E6FF}
+.timeline-desc{font-size:0.82rem;color:#667799}
 
-/* Insight Banner */
-.insight{background:var(--bg-alt);border-left:4px solid var(--primary);padding:18px 24px;border-radius:0 8px 8px 0;margin:24px 0}
-.insight strong{color:var(--primary)}
-
-/* Footer */
-footer{background:#1A1A2E;color:rgba(255,255,255,0.6);padding:40px 24px;text-align:center;font-size:0.85rem}
-footer strong{color:rgba(255,255,255,0.9)}
-footer a{color:rgba(255,255,255,0.6)}footer a:hover{color:rgba(255,255,255,0.9)}
-footer .author{display:block;margin-top:12px;font-size:0.95rem;color:var(--primary-light)}
-
-/* Animate */
-.fade-up{opacity:0;transform:translateY(30px);transition:opacity 0.7s ease,transform 0.7s ease}
+/* ===== ANIMATIONS ===== */
+.fade-up{opacity:0;transform:translateY(40px);transition:opacity 0.8s ease,transform 0.8s ease}
 .fade-up.visible{opacity:1;transform:translateY(0)}
 .delay-1{transition-delay:0.1s}
 .delay-2{transition-delay:0.2s}
 .delay-3{transition-delay:0.3s}
 .delay-4{transition-delay:0.4s}
 
-/* Country table */
-.table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:0.9rem}
-th{background:var(--primary);color:#fff;padding:12px 16px;text-align:left;font-weight:600}
-td{padding:10px 16px;border-bottom:1px solid var(--border)}
-tr:hover td{background:var(--bg-alt)}
-tr:nth-child(1) td:first-child{font-weight:700;color:var(--accent-dark)}
-.rank-num{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:50%;font-weight:700;font-size:0.8rem;background:var(--bg-alt);color:var(--text-secondary)}
-tr:nth-child(1) .rank-num{background:var(--accent);color:#fff}
-tr:nth-child(2) .rank-num{background:var(--primary-light);color:#fff}
-tr:nth-child(3) .rank-num{background:var(--secondary);color:#fff}
-tr:nth-child(4) .rank-num{background:var(--accent);color:#fff}
-.flag-china{color:#DE2910;font-weight:700}
+/* ===== COUNTER ANIMATION ===== */
+.counter-num{display:inline-block}
 
-/* Responsive */
+/* ===== CIRCUIT LINES (decorative) ===== */
+.circuit{
+  position:absolute;pointer-events:none;opacity:0.06;
+  background:linear-gradient(90deg,transparent,#00D4FF,transparent);
+  height:1px;width:200px;
+}
+.circuit-1{top:20%;right:5%;width:300px;animation:circuitDrift 6s linear infinite}
+.circuit-2{bottom:20%;left:5%;width:250px;animation:circuitDrift 8s linear infinite reverse}
+@keyframes circuitDrift{0%{opacity:0.03}50%{opacity:0.1}100%{opacity:0.03}}
+
+/* ===== SCROLL INDICATOR ===== */
+.scroll-indicator{
+  position:absolute;bottom:30px;left:50%;transform:translateX(-50%);z-index:3;
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  color:#556688;font-size:0.7rem;letter-spacing:2px;
+  animation:fadeDown 2s ease-in-out infinite;
+}
+.scroll-indicator .arrow{
+  width:16px;height:16px;border-right:2px solid #00D4FF;border-bottom:2px solid #00D4FF;
+  transform:rotate(45deg);opacity:0.5;
+}
+@keyframes fadeDown{0%,100%{transform:translateX(-50%) translateY(0);opacity:0.6}50%{transform:translateX(-50%) translateY(8px);opacity:1}}
+
+/* ===== CHINA HIGHLIGHT RIBBON ===== */
+.china-ribbon{
+  position:relative;display:inline-flex;align-items:center;gap:10px;
+  padding:4px 20px 4px 12px;border-radius:0 20px 20px 0;
+  background:linear-gradient(90deg,rgba(255,0,51,0.08),transparent);
+  border-left:3px solid #FF0033;
+  font-size:0.82rem;color:#FFD700;letter-spacing:1px;
+}
+.china-ribbon::after{
+  content:'\2726';margin-left:4px;font-size:0.7rem;color:#FF0033;
+  animation:sparkle 2s ease-in-out infinite;
+}
+@keyframes sparkle{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* ===== DATA STREAM ===== */
+.datastream{
+  position:fixed;top:0;right:20px;z-index:0;pointer-events:none;opacity:0.03;
+  font-family:monospace;font-size:0.6rem;color:#00D4FF;line-height:1.4;
+  writing-mode:vertical-rl;animation:dataFlow 20s linear infinite;
+}
+@keyframes dataFlow{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
+
+/* ===== PULSE RING ===== */
+.pulse-ring{position:absolute;border-radius:50%;border:1px solid rgba(0,212,255,0.15);animation:pulseExpand 3s ease-out infinite;pointer-events:none}
+@keyframes pulseExpand{0%{width:20px;height:20px;opacity:0.8}100%{width:200px;height:200px;opacity:0}}
+
+/* ===== FOOTER ===== */
+footer{
+  position:relative;z-index:1;
+  background:rgba(8,12,26,0.9);border-top:1px solid rgba(0,212,255,0.08);
+  padding:40px 24px;text-align:center;font-size:0.82rem;color:#556688;
+}
+footer strong{color:#8899BB}
+footer a{color:rgba(0,212,255,0.6)}
+footer a:hover{color:#00D4FF}
+footer .author{
+  display:block;margin-top:12px;font-size:0.95rem;
+  background:linear-gradient(90deg,#00D4FF,#0088FF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:1px;
+}
+
+/* ===== LOADING SCREEN ===== */
+#loader{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:#080C1A;display:flex;align-items:center;justify-content:center;
+  z-index:10000;transition:opacity 0.8s,visibility 0.8s;
+}
+#loader.hidden{opacity:0;visibility:hidden}
+#loader .spinner{
+  width:50px;height:50px;border:3px solid rgba(0,212,255,0.1);
+  border-top-color:#00D4FF;border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{
+  margin-top:16px;color:#556688;font-size:0.85rem;letter-spacing:2px;
+}
+
+/* ===== RESPONSIVE ===== */
 @media(max-width:768px){
   .hero h1{font-size:1.8rem}
-  .hero{padding:60px 20px 50px}
+  .hero .china-em{font-size:1.3rem}
+  .hero-stats{gap:20px}
+  .hero-stat .num{font-size:1.6rem}
   .kpi-grid{grid-template-columns:repeat(2,1fr);gap:12px}
-  .timeline::before{left:24px}
-  .timeline-row,.timeline-row:nth-child(odd){flex-direction:column;padding-left:50px}
+  .timeline::before{left:20px}
+  .timeline-row,.timeline-row:nth-child(odd){flex-direction:column;padding-left:44px}
   .timeline-row .col,.timeline-row:nth-child(odd) .col,.timeline-row:nth-child(even) .col{width:100%;padding:0;text-align:left}
-  .timeline-dot{left:24px}
-  .section{padding:40px 0}
+  .timeline-dot{left:20px}
+  .section{padding:50px 0}
   .chart-box{padding:16px}
-  .chart-wrap{max-height:350px}
-  nav .links{display:none}
+  nav .links{gap:0}
+  nav a{font-size:0.75rem;padding:6px 10px}
 }
 @media(max-width:480px){
   .kpi-grid{grid-template-columns:1fr 1fr;gap:10px}
   .kpi-card{padding:16px}
-  .kpi-card .num{font-size:1.4rem}
+  .kpi-card .num{font-size:1.5rem}
+  .hero h1{font-size:1.4rem}
+  .hero .china-em{font-size:1rem}
 }
 </style>
 </head>
 <body>
 
-<nav>
+<!-- Loading Screen -->
+<div id="loader">
+  <div style="text-align:center">
+    <div class="spinner"></div>
+    <p>INITIALIZING DATA...</p>
+  </div>
+</div>
+
+<!-- Data Stream Background -->
+<div class="datastream" id="dataStream"></div>
+
+<!-- Particle Canvas -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- Nav -->
+<nav id="nav">
 <div class="inner">
-  <span class="logo">🏭 2026制造业排行</span>
+  <span class="logo">⟐ 制造业排行 2026</span>
   <div class="links">
     <a href="#ranking">排名</a>
     <a href="#china">中国</a>
@@ -162,19 +423,51 @@ tr:nth-child(4) .rank-num{background:var(--accent);color:#fff}
 
 <!-- Hero -->
 <section class="hero">
-  <div class="badge">📊 基于世界银行 · UNIDO · 各国统计局数据</div>
-  <h1>2026年世界各国制造业排行</h1>
-  <p>全球制造业增加值（MVA）实力排名全景分析 — 中国制造业发展历程与核心数据</p>
+  <div class="grid-bg"></div>
+  <div class="circuit circuit-1"></div>
+  <div class="circuit circuit-2"></div>
+  <div class="hero-content">
+    <div class="badge"><span class="dot"></span> SYSTEM·2026 · 世界银行 · UNIDO 数据终端</div>
+    <h1>2026年世界各国<br>制造业排行</h1>
+    <span class="china-em">✦ 中国 · 全球第一制造强国 ✦</span>
+    <p>制造业增加值（MVA）实力排名全景分析 — 中国制造业发展历程与核心数据</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num gold" data-target="4.70">0</div><div class="label">万亿美元 · MVA</div></div>
+      <div class="hero-stat"><div class="num" data-target="30.2">0</div><div class="label">% · 全球占比</div></div>
+      <div class="hero-stat"><div class="num gold" data-target="220">0</div><div class="label">+ 种 · 产量第一</div></div>
+      <div class="hero-stat"><div class="num" data-target="1">0</div><div class="label"># · 全球排名</div></div>
+    </div>
+  </div>
+  <div class="scroll-indicator">
+    <span>SCROLL</span>
+    <div class="arrow"></div>
+  </div>
 </section>
 
 <!-- KPI Cards -->
 <div class="section section-alt" style="padding:40px 0">
 <div class="container">
 <div class="kpi-grid">
-  <div class="kpi-card fade-up"><div class="num">$4.7万亿</div><div class="label">制造业增加值</div><div class="desc">全球第一</div></div>
-  <div class="kpi-card fade-up delay-1"><div class="num">30%+</div><div class="label">全球占比</div><div class="desc">超过美日德之和</div></div>
-  <div class="kpi-card fade-up delay-2"><div class="num">220+种</div><div class="label">产品产量全球第一</div><div class="desc">钢铁·水泥·汽车·电子</div></div>
-  <div class="kpi-card fade-up delay-3"><div class="num">41个</div><div class="label">工业大类全覆盖</div><div class="desc">全球唯一完整工业体系</div></div>
+  <div class="kpi-card fade-up">
+    <div class="num"><span class="counter-num" data-target="4.7">0</span><span style="font-size:1rem">万亿</span></div>
+    <div class="label">制造业增加值</div>
+    <div class="desc">全球第一 · 超美日德总和</div>
+  </div>
+  <div class="kpi-card fade-up delay-1">
+    <div class="num"><span class="counter-num" data-target="30.2">0</span><span style="font-size:1rem">%</span></div>
+    <div class="label">全球占比</div>
+    <div class="desc">超过第2-6名总和</div>
+  </div>
+  <div class="kpi-card fade-up delay-2">
+    <div class="num"><span class="counter-num" data-target="220">0</span><span style="font-size:1rem">+</span></div>
+    <div class="label">产品产量全球第一</div>
+    <div class="desc">钢铁·水泥·汽车·电子</div>
+  </div>
+  <div class="kpi-card fade-up delay-3">
+    <div class="num"><span class="counter-num" data-target="41">0</span></div>
+    <div class="label">工业大类</div>
+    <div class="desc">全球唯一完整工业体系</div>
+  </div>
 </div>
 </div>
 </div>
@@ -182,26 +475,28 @@ tr:nth-child(4) .rank-num{background:var(--accent);color:#fff}
 <!-- Section 1: Top 15 Ranking -->
 <section id="ranking" class="section">
 <div class="container fade-up">
-  <h2 class="section-title">🌍 全球制造业增加值 Top 15 排名</h2>
+  <h2 class="section-title">◆ 全球制造业增加值 Top 15 排名</h2>
   <p class="section-subtitle">制造业增加值（MVA）单位：万亿美元（当前美元计价）</p>
   <div class="divider"></div>
+  <div class="china-ribbon" style="margin-bottom:20px">🇨🇳 中国制造业增加值占比全球 30.2%</div>
   <div class="chart-box">
     <div class="chart-wrap"><canvas id="rankChart"></canvas></div>
   </div>
-  <div class="insight"><strong>核心洞察：</strong>中国制造业增加值达 $4.7万亿美元，占全球30%以上，超过第2-4名（美日德）总和。Top 5国家占全球 MVA 约65%。</div>
+  <div class="insight"><strong>核心洞察：</strong>中国制造业增加值达 <strong>$4.7万亿美元</strong>，占全球 30% 以上，超过第2-4名（美日德）总和。Top 5 国家占全球 MVA 约 65%。</div>
 </div>
 </section>
 
 <!-- Section 2: Table -->
-<section class="section section-alt">
+<section id="table-section" class="section section-alt">
 <div class="container fade-up">
-  <h2 class="section-title">📋 详细排名数据</h2>
+  <h2 class="section-title">◆ 详细排名数据</h2>
   <div class="divider"></div>
-  <div class="table-wrap chart-box" style="padding:0">
+  <div class="chart-box" style="padding:0;overflow:hidden">
+  <div class="table-wrap">
   <table>
-    <thead><tr><th style="width:60px">#</th><th>国家</th><th>制造业增加值（万亿美元）</th><th>全球占比</th><th>备注</th></tr></thead>
+    <thead><tr><th style="width:50px">#</th><th>国家</th><th>制造业增加值（万亿美元）</th><th>全球占比</th><th>备注</th></tr></thead>
     <tbody>
-      <tr><td><span class="rank-num">1</span></td><td><span class="flag-china">🇨🇳 中国</span></td><td><strong>4.70</strong></td><td><strong>30.2%</strong></td><td>全球第一制造大国</td></tr>
+      <tr><td><span class="rank-num">1</span></td><td style="color:#E0E6FF;font-weight:700">🇨🇳 中国</td><td style="color:#FFD700;font-weight:700">4.70</td><td style="color:#FFD700;font-weight:700">30.2%</td><td>全球第一制造大国</td></tr>
       <tr><td><span class="rank-num">2</span></td><td>🇺🇸 美国</td><td>2.50</td><td>16.4%</td><td>高端制造领先</td></tr>
       <tr><td><span class="rank-num">3</span></td><td>🇯🇵 日本</td><td>0.85</td><td>6.1%</td><td>精密制造优势</td></tr>
       <tr><td><span class="rank-num">4</span></td><td>🇩🇪 德国</td><td>0.75</td><td>5.3%</td><td>工业4.0发源地</td></tr>
@@ -219,234 +514,520 @@ tr:nth-child(4) .rank-num{background:var(--accent);color:#fff}
     </tbody>
   </table>
   </div>
+  </div>
 </div>
 </section>
 
 <!-- Section 3: China Global Share -->
 <section id="china" class="section">
 <div class="container">
-  <h2 class="section-title">🇨🇳 中国占全球制造业比重</h2>
+  <h2 class="section-title">◆ 中国占全球制造业比重</h2>
   <p class="section-subtitle">主要国家制造业增加值占全球份额分布</p>
   <div class="divider"></div>
+  <div class="china-ribbon" style="margin-bottom:20px">🇨🇳 中国占比 30.2% = 美国(16.4%) + 日本(6.1%) + 德国(5.3%)</div>
   <div class="kpi-grid" style="margin-bottom:0">
-    <div class="kpi-card fade-up"><div class="num">30.2%</div><div class="label">中国占比</div></div>
-    <div class="kpi-card fade-up delay-1"><div class="num">16.4%</div><div class="label">美国</div></div>
-    <div class="kpi-card fade-up delay-2"><div class="num">6.1%</div><div class="label">日本</div></div>
-    <div class="kpi-card fade-up delay-3"><div class="num">5.3%</div><div class="label">德国</div></div>
+    <div class="kpi-card fade-up"><div class="num"><span class="counter-num" data-target="30.2">0</span>%</div><div class="label">🇨🇳 中国占比</div></div>
+    <div class="kpi-card fade-up delay-1"><div class="num">16.4%</div><div class="label">🇺🇸 美国</div></div>
+    <div class="kpi-card fade-up delay-2"><div class="num">6.1%</div><div class="label">🇯🇵 日本</div></div>
+    <div class="kpi-card fade-up delay-3"><div class="num">5.3%</div><div class="label">🇩🇪 德国</div></div>
   </div>
   <div class="chart-box">
     <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
   </div>
-  <div class="insight"><strong>核心洞察：</strong>中国制造业占全球30.2%，相当于美国（16.4%）的近两倍。中美合计占全球近47%，构成全球制造业「双引擎」格局。</div>
+  <div class="insight"><strong>核心洞察：</strong>中国制造业占全球 <strong>30.2%</strong>，相当于美国（16.4%）的近两倍。中美合计占全球近 46.6%，构成全球制造业「双引擎」格局。中国一家超过第2-6名（美日德印韩）的总和。</div>
 </div>
 </section>
 
 <!-- Section 4: Industries -->
 <section class="section section-alt">
 <div class="container fade-up">
-  <h2 class="section-title">🏗️ 中国制造业核心产业版图</h2>
+  <h2 class="section-title">◆ 中国制造业核心产业版图</h2>
   <div class="divider"></div>
   <div class="chart-box">
     <div class="chart-wrap"><canvas id="industryChart"></canvas></div>
   </div>
+  <div class="insight"><strong>产业亮点：</strong>电子信息产业产值突破 <strong>$1万亿</strong>，新能源产业以 28% 年增速领跑全球。中国是全球唯一拥有全部 41 个工业大类、220+ 种产品产量第一的国家。</div>
 </div>
 </section>
 
 <!-- Section 5: Growth -->
 <section id="growth" class="section">
 <div class="container fade-up">
-  <h2 class="section-title">📈 中国制造业增加值增长轨迹</h2>
+  <h2 class="section-title">◆ 中国制造业增加值增长轨迹</h2>
   <p class="section-subtitle">2000-2024年制造业增加值（万亿美元）</p>
   <div class="divider"></div>
+  <div class="china-ribbon" style="margin-bottom:20px">🇨🇳 24年增长9倍 · 年均复合增长率10.2%</div>
   <div class="chart-box">
     <div class="chart-wrap"><canvas id="growthChart"></canvas></div>
   </div>
-  <div class="insight"><strong>增长数据：</strong>2000-2024年，中国制造业增加值从$0.5万亿增长至$4.7万亿，增长约9倍，年均复合增长率约10.2%。全球占比从6.5%提升至30%以上。</div>
+  <div class="insight"><strong>增长数据：</strong>2000年仅为 $0.5万亿，2024年跃升至 <strong>$4.7万亿</strong>，增长约 9 倍。全球占比从 6.5% 提升至 30% 以上。2010年超越美国成为全球第一制造大国。</div>
 </div>
 </section>
 
 <!-- Section 6: China vs USA -->
 <section class="section section-alt">
 <div class="container fade-up">
-  <h2 class="section-title">⚔️ 中美制造业对比</h2>
+  <h2 class="section-title">◆ 中美制造业全方位对比</h2>
   <div class="divider"></div>
+  <div class="china-ribbon" style="margin-bottom:20px">🇨🇳 中国在 MVA、就业、工业门类等指标全面领先</div>
   <div class="chart-box">
     <div class="chart-wrap"><canvas id="compareChart"></canvas></div>
   </div>
+  <div class="insight"><strong>对比数据：</strong>中国制造业增加值是美国的 <strong>1.9倍</strong>；工业门类 41:30，中国覆盖更全面；制造业就业人口 1.5亿 vs 1280万，展现中国制造的庞大体量。</div>
 </div>
 </section>
 
 <!-- Section 7: Timeline -->
 <section id="timeline" class="section">
 <div class="container fade-up">
-  <h2 class="section-title">📅 中国制造业发展历程</h2>
-  <p class="section-subtitle">从1949年工业空白到2024年全球第一制造大国</p>
+  <h2 class="section-title">◆ 中国制造业发展历程</h2>
+  <p class="section-subtitle">从 1949 年工业空白到 2026 年全球第一制造强国</p>
   <div class="divider"></div>
   <div class="chart-box">
   <div class="timeline">
     <div class="timeline-row">
-      <div class="col"><div class="timeline-year">1949-1957</div><div class="timeline-title">奠基起步</div><div class="timeline-desc">「一五」计划156个重点项目，奠定工业基础</div></div>
-      <div class="timeline-dot" style="background:#1565C0"></div>
+      <div class="col"><div class="timeline-year">1949 — 1957</div><div class="timeline-title">奠基起步</div><div class="timeline-desc">「一五」计划 156 个重点项目，奠定现代工业基础</div></div>
+      <div class="timeline-dot" style="border-color:#1565C0;box-shadow:0 0 12px rgba(21,101,192,0.3)"></div>
       <div class="col"></div>
     </div>
     <div class="timeline-row">
       <div class="col"></div>
-      <div class="timeline-dot" style="background:#666"></div>
-      <div class="col"><div class="timeline-year">1958-1978</div><div class="timeline-title">自主探索</div><div class="timeline-desc">三线建设，建立独立工业体系，突破技术封锁</div></div>
+      <div class="timeline-dot" style="border-color:#556688;box-shadow:0 0 12px rgba(85,102,136,0.3)"></div>
+      <div class="col"><div class="timeline-year">1958 — 1978</div><div class="timeline-title">自主探索</div><div class="timeline-desc">三线建设，建立独立工业体系，突破技术封锁</div></div>
     </div>
     <div class="timeline-row">
-      <div class="col"><div class="timeline-year">1978-2000</div><div class="timeline-title">改革开放</div><div class="timeline-desc">沿海开放战略，外资技术引入，乡镇企业崛起</div></div>
-      <div class="timeline-dot" style="background:#00897B"></div>
+      <div class="col"><div class="timeline-year">1978 — 2000</div><div class="timeline-title">改革开放</div><div class="timeline-desc">沿海开放战略，外资技术引入，乡镇企业崛起</div></div>
+      <div class="timeline-dot" style="border-color:#00897B;box-shadow:0 0 12px rgba(0,137,123,0.3)"></div>
       <div class="col"></div>
     </div>
     <div class="timeline-row">
       <div class="col"></div>
-      <div class="timeline-dot" style="background:#00897B"></div>
-      <div class="col"><div class="timeline-year">2001-2010</div><div class="timeline-title">WTO时代崛起</div><div class="timeline-desc">2001年加入WTO，2010年超越美国成为第一制造大国</div></div>
+      <div class="timeline-dot" style="border-color:#0088FF;box-shadow:0 0 12px rgba(0,136,255,0.3)"></div>
+      <div class="col"><div class="timeline-year">2001 — 2010</div><div class="timeline-title">WTO时代 · 崛起</div><div class="timeline-desc">2001年加入WTO，2010年超越美国成为第一制造大国</div></div>
     </div>
     <div class="timeline-row">
-      <div class="col"><div class="timeline-year">2010-2020</div><div class="timeline-title">转型升级</div><div class="timeline-desc">中国制造2025战略，新兴产业全面崛起</div></div>
-      <div class="timeline-dot" style="background:#FB8C00"></div>
+      <div class="col"><div class="timeline-year">2010 — 2020</div><div class="timeline-title">转型升级</div><div class="timeline-desc">「中国制造2025」战略，新兴产业全面崛起</div></div>
+      <div class="timeline-dot" style="border-color:#FB8C00;box-shadow:0 0 12px rgba(251,140,0,0.3)"></div>
       <div class="col"></div>
     </div>
     <div class="timeline-row">
       <div class="col"></div>
-      <div class="timeline-dot" style="background:#E53935"></div>
-      <div class="col"><div class="timeline-year">2020-2026</div><div class="timeline-title">引领时代</div><div class="timeline-desc">疫后产能爆发，全球份额超30%，新能源·AI制造领先</div></div>
+      <div class="timeline-dot" style="border-color:#FF0033;box-shadow:0 0 12px rgba(255,0,51,0.3)"></div>
+      <div class="col"><div class="timeline-year">2020 — 2026</div><div class="timeline-title">引领时代</div><div class="timeline-desc">疫后产能爆发，全球份额超 30%，新能源·AI制造领先全球</div></div>
     </div>
   </div>
   </div>
+  <div class="insight"><strong>历史里程碑：</strong>从 1949 年工业基础几乎空白，到 2026 年制造业增加值占全球 <strong>30%+</strong>，中国仅用 70 余年完成了人类历史上规模最大、速度最快的工业化进程。</div>
 </div>
 </section>
 
+<!-- Footer -->
 <footer>
   <div class="container">
     <p style="font-size:1.1rem;margin-bottom:8px"><strong>2026年世界各国制造业排行</strong></p>
-    <p>数据来源：世界银行、联合国工业发展组织（UNIDO）、中国国家统计局</p>
-    <p>世界500强数据来源于《财富》杂志 | 就业人口数据来源于ILO国际劳工组织</p>
+    <p>数据来源：世界银行 · 联合国工业发展组织（UNIDO）· 中国国家统计局</p>
+    <p>世界500强数据来源于《财富》杂志 · 就业人口数据来源于 ILO 国际劳工组织</p>
     <p>制造业增加值（MVA）为当前美元计价，部分数据为估算值</p>
-    <span class="author">✎ 作者：foy.fan@outlook.com</span>
-    <p style="margin-top:16px;color:rgba(255,255,255,0.4)">© 2024-2026 全球制造业排行 · All Rights Reserved</p>
+    <span class="author">⟐ 作者：foy.fan@outlook.com</span>
+    <p style="margin-top:16px;color:rgba(255,255,255,0.15)">© 2024-2026 全球制造业排行 · All Rights Reserved</p>
   </div>
 </footer>
 
 <script>
-function observe(sel){
-  const els = document.querySelectorAll(sel);
-  if(!els.length) return;
-  const io = new IntersectionObserver(entries=>{
-    entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}});
-  },{threshold:0.1});
-  els.forEach(el=>io.observe(el));
-}
-observe('.fade-up');
+// ===== LOADER =====
+window.addEventListener('load',()=>{
+  setTimeout(()=>document.getElementById('loader').classList.add('hidden'),500);
+});
 
-// Global defaults
-Chart.defaults.font.family = "'PingFang SC','Microsoft YaHei',sans-serif";
-Chart.defaults.font.size = 13;
+// ===== PARTICLE SYSTEM =====
+const canvas = document.getElementById('particleCanvas');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let mouse = {x:0,y:0};
+let W,H;
+
+function resize(){
+  W=canvas.width=window.innerWidth;
+  H=canvas.height=window.innerHeight;
+}
+resize();
+window.addEventListener('resize',resize);
+
+class Particle{
+  constructor(){this.reset()}
+  reset(){
+    this.x=Math.random()*W;
+    this.y=Math.random()*H;
+    this.vx=(Math.random()-0.5)*0.5;
+    this.vy=(Math.random()-0.5)*0.5;
+    this.r=Math.random()*2+0.5;
+    this.alpha=Math.random()*0.5+0.1;
+  }
+  update(){
+    this.x+=this.vx;this.y+=this.vy;
+    if(this.x<0||this.x>W||this.y<0||this.y>H) this.reset();
+    // mouse interaction
+    const dx=mouse.x-this.x,dy=mouse.y-this.y,dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<120){this.vx-=dx*0.0003;this.vy-=dy*0.0003}
+    this.vx*=0.99;this.vy*=0.99;
+  }
+  draw(){
+    ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,212,255,'+this.alpha+')';
+    ctx.fill();
+  }
+}
+
+for(let i=0;i<120;i++) particles.push(new Particle());
+
+let animId;
+function animate(){
+  ctx.clearRect(0,0,W,H);
+  particles.forEach(function(p){p.update();p.draw()});
+  // draw connections
+  for(let i=0;i<particles.length;i++){
+    for(let j=i+1;j<particles.length;j++){
+      const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<150){
+        ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);
+        ctx.lineTo(particles[j].x,particles[j].y);
+        ctx.strokeStyle='rgba(0,212,255,'+(0.08*(1-dist/150))+')';
+        ctx.lineWidth=0.5;ctx.stroke();
+      }
+    }
+  }
+  animId=requestAnimationFrame(animate);
+}
+animate();
+
+document.addEventListener('mousemove',function(e){mouse.x=e.clientX;mouse.y=e.clientY});
+
+// ===== DATA STREAM =====
+const streamEl=document.getElementById('dataStream');
+let streamTxt='';
+const chars='0123456789ABCDEF';
+for(let i=0;i<30;i++){
+  let line='';
+  for(let j=0;j<20;j++) line+=chars[Math.floor(Math.random()*chars.length)];
+  streamTxt+=line+'\n';
+}
+streamEl.textContent=streamTxt;
+
+// ===== SCROLL NAV =====
+const nav=document.getElementById('nav');
+window.addEventListener('scroll',function(){
+  nav.classList.toggle('scrolled',window.scrollY>80);
+});
+
+// ===== INTERSECTION OBSERVER =====
+const io=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){e.target.classList.add('visible');io.unobserve(e.target)}
+  });
+},{threshold:0.1});
+document.querySelectorAll('.fade-up').forEach(function(el){io.observe(el)});
+
+// ===== COUNTER ANIMATION =====
+const counterIO=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      const el=e.target;
+      const target=parseFloat(el.dataset.target);
+      if(isNaN(target))return;
+      const duration=2000;
+      const start=performance.now();
+      const isDecimal=target%1!==0;
+      const decimals=isDecimal?1:0;
+      (function(){
+        const now=performance.now();
+        const progress=Math.min((now-start)/duration,1);
+        const eased=1-Math.pow(1-progress,3);
+        const val=target*eased;
+        el.textContent=isDecimal?val.toFixed(decimals):Math.round(val);
+        if(progress<1) requestAnimationFrame(arguments.callee);
+      })();
+      counterIO.unobserve(el);
+    }
+  });
+},{threshold:0.3});
+document.querySelectorAll('.counter-num').forEach(function(el){counterIO.observe(el)});
+
+// ===== HERO STATS COUNTERS =====
+const heroIO=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){
+    if(e.isIntersecting){
+      const el=e.target;
+      const target=parseFloat(el.dataset.target);
+      if(isNaN(target))return;
+      const duration=2000;
+      const start=performance.now();
+      const isDecimal=target%1!==0;
+      (function(){
+        const now=performance.now();
+        const progress=Math.min((now-start)/duration,1);
+        const eased=1-Math.pow(1-progress,3);
+        el.textContent=isDecimal?target.toFixed(1):Math.round(target*eased);
+        if(progress<1) requestAnimationFrame(arguments.callee); else el.textContent=target;
+      })();
+      heroIO.unobserve(el);
+    }
+  });
+},{threshold:0.3});
+document.querySelectorAll('.hero-stat .num').forEach(function(el){heroIO.observe(el)});
+
+// ===== CHARTS =====
+Chart.defaults.font.family="'PingFang SC','Microsoft YaHei',sans-serif";
+Chart.defaults.font.size=12;
+Chart.defaults.color='#667799';
+Chart.defaults.plugins.legend.labels.color='#8899BB';
 
 // 1. Ranking bar chart (horizontal)
-const rankCtx = document.getElementById('rankChart').getContext('2d');
-const rankData = [
+const rankCtx=document.getElementById('rankChart').getContext('2d');
+const rankData=[
   {c:'中国',v:4.70},{c:'美国',v:2.50},{c:'日本',v:0.85},{c:'德国',v:0.75},
   {c:'印度',v:0.45},{c:'韩国',v:0.43},{c:'墨西哥',v:0.38},{c:'俄罗斯',v:0.35},
   {c:'英国',v:0.30},{c:'法国',v:0.28},{c:'意大利',v:0.27},{c:'加拿大',v:0.22},
   {c:'巴西',v:0.20},{c:'印尼',v:0.18},{c:'土耳其',v:0.17}
 ];
-new Chart(rankCtx, {
+new Chart(rankCtx,{
   type:'bar',
   data:{
-    labels: rankData.map(d=>d.c),
-    datasets:[{label:'制造业增加值 (万亿美元)',data:rankData.map(d=>d.v),
-      backgroundColor: rankData.map((d,i)=>i===0?'#FB8C00':'#1565C0'),
-      borderRadius: 4, barThickness: 18}]
+    labels:rankData.map(function(d){return d.c}),
+    datasets:[{
+      label:'MVA (万亿美元)',
+      data:rankData.map(function(d){return d.v}),
+      backgroundColor:rankData.map(function(d,i){return i===0?'rgba(255,0,51,0.85)':'rgba(0,212,255,0.55)'}),
+      borderColor:rankData.map(function(d,i){return i===0?'#FF0033':'#00D4FF'}),
+      borderWidth:1,
+      borderRadius:3,
+      barThickness:18
+    }]
   },
   options:{
     indexAxis:'y',responsive:true,maintainAspectRatio:true,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.x+'万亿美元'}}},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'rgba(8,12,26,0.95)',
+        titleColor:'#00D4FF',
+        bodyColor:'#C8D6E5',
+        borderColor:'rgba(0,212,255,0.2)',
+        borderWidth:1,
+        padding:12,
+        callbacks:{label:function(ctx){return ctx.parsed.x+' 万亿美元'}}
+      }
+    },
     scales:{
-      x:{grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:12}}},
-      y:{grid:{display:false},ticks:{font:{size:12}}}
+      x:{
+        grid:{color:'rgba(0,212,255,0.06)'},
+        ticks:{color:'#556688',font:{size:11}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      },
+      y:{
+        grid:{display:false},
+        ticks:{color:'#8899BB',font:{size:11}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      }
     }
   }
 });
 
 // 2. Pie chart
-const pieCtx = document.getElementById('pieChart').getContext('2d');
-new Chart(pieCtx, {
+const pieCtx=document.getElementById('pieChart').getContext('2d');
+new Chart(pieCtx,{
   type:'pie',
   data:{
     labels:['中国 30.2%','美国 16.4%','日本 6.1%','德国 5.3%','印度 3.2%','韩国 3.0%','其他 35.8%'],
-    datasets:[{data:[30.2,16.4,6.1,5.3,3.2,3.0,35.8],
-      backgroundColor:['#1565C0','#42A5F5','#00897B','#FB8C00','#7CB342','#8E24AA','#BBBBBB'],
-      borderWidth:2,borderColor:'#fff'}]
+    datasets:[{
+      data:[30.2,16.4,6.1,5.3,3.2,3.0,35.8],
+      backgroundColor:['#FF0033','#00D4FF','#0088FF','#00897B','#FB8C00','#7CB342','rgba(0,212,255,0.12)'],
+      borderWidth:2,borderColor:'#080C1A'
+    }]
   },
   options:{
     responsive:true,maintainAspectRatio:true,
     plugins:{
-      legend:{position:'right',labels:{font:{size:12},padding:12}},
-      tooltip:{callbacks:{label:ctx=>ctx.label}}
+      legend:{
+        position:'right',
+        labels:{
+          color:'#8899BB',font:{size:12},padding:14,
+          usePointStyle:true,pointStyle:'circle'
+        }
+      },
+      tooltip:{
+        backgroundColor:'rgba(8,12,26,0.95)',
+        titleColor:'#00D4FF',
+        bodyColor:'#C8D6E5',
+        borderColor:'rgba(0,212,255,0.2)',
+        borderWidth:1,
+        padding:12,
+        callbacks:{label:function(ctx){return ctx.label}}
+      }
     }
   }
 });
 
 // 3. Industry chart
-const indCtx = document.getElementById('industryChart').getContext('2d');
-new Chart(indCtx, {
+const indCtx=document.getElementById('industryChart').getContext('2d');
+new Chart(indCtx,{
   type:'bar',
   data:{
     labels:['电子信息','化学工业','汽车制造','机械设备','钢铁冶金','纺织轻工','新能源','生物医药'],
-    datasets:[{label:'产值 (万亿美元)',data:[1.03,0.66,0.56,0.52,0.42,0.33,0.28,0.22],
-      backgroundColor:['#1565C0','#42A5F5','#00897B','#FB8C00','#E53935','#7CB342','#8E24AA','#D81B60'],
-      borderRadius:4}]
+    datasets:[{
+      label:'产值 (万亿美元)',
+      data:[1.03,0.66,0.56,0.52,0.42,0.33,0.28,0.22],
+      backgroundColor:['#FF0033','#00D4FF','#0088FF','#00897B','#FB8C00','#7CB342','#8E24AA','#D81B60'].map(function(c){return c+'cc'}),
+      borderColor:['#FF0033','#00D4FF','#0088FF','#00897B','#FB8C00','#7CB342','#8E24AA','#D81B60'],
+      borderWidth:1,
+      borderRadius:4
+    }]
   },
   options:{
     responsive:true,maintainAspectRatio:true,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y+'万亿美元'}}},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'rgba(8,12,26,0.95)',
+        titleColor:'#00D4FF',
+        bodyColor:'#C8D6E5',
+        borderColor:'rgba(0,212,255,0.2)',
+        borderWidth:1,
+        padding:12,
+        callbacks:{label:function(ctx){return ctx.parsed.y+' 万亿美元'}}
+      }
+    },
     scales:{
-      y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:12}}},
-      x:{grid:{display:false},ticks:{font:{size:12}}}
+      y:{
+        beginAtZero:true,
+        grid:{color:'rgba(0,212,255,0.06)'},
+        ticks:{color:'#556688',font:{size:11}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      },
+      x:{
+        grid:{display:false},
+        ticks:{color:'#8899BB',font:{size:11}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      }
     }
   }
 });
 
 // 4. Growth line chart
-const growthCtx = document.getElementById('growthChart').getContext('2d');
-new Chart(growthCtx, {
+const growthCtx=document.getElementById('growthChart').getContext('2d');
+new Chart(growthCtx,{
   type:'line',
   data:{
     labels:['2000','2002','2004','2006','2008','2010','2012','2014','2016','2018','2020','2022','2024'],
-    datasets:[{label:'制造业增加值 (万亿美元)',data:[0.50,0.55,0.70,1.00,1.50,1.90,2.30,2.80,3.10,3.70,3.90,4.40,4.70],
-      borderColor:'#1565C0',backgroundColor:'rgba(21,101,192,0.12)',fill:true,
-      tension:0.4,pointBackgroundColor:'#1565C0',pointRadius:4,pointHoverRadius:6,borderWidth:3}]
+    datasets:[{
+      label:'制造业增加值 (万亿美元)',
+      data:[0.50,0.55,0.70,1.00,1.50,1.90,2.30,2.80,3.10,3.70,3.90,4.40,4.70],
+      borderColor:'#00D4FF',
+      backgroundColor:(function(){
+        var grad;
+        return function(ctx){
+          if(!grad){grad=ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);
+          grad.addColorStop(0,'rgba(0,212,255,0.3)');
+          grad.addColorStop(1,'rgba(0,212,255,0.01)');
+          }
+          return grad;
+        };
+      })(),
+      fill:true,
+      tension:0.4,
+      pointBackgroundColor:function(ctx){
+        return ctx.dataIndex===ctx.dataset.data.length-1?'#FF0033':'#00D4FF';
+      },
+      pointBorderColor:function(ctx){
+        return ctx.dataIndex===ctx.dataset.data.length-1?'#FF0033':'#00D4FF';
+      },
+      pointRadius:function(ctx){return ctx.dataIndex===ctx.dataset.data.length-1?7:4},
+      pointHoverRadius:8,
+      borderWidth:3
+    }]
   },
   options:{
     responsive:true,maintainAspectRatio:true,
-    plugins:{tooltip:{callbacks:{label:ctx=>ctx.parsed.y+'万亿美元'}}},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        backgroundColor:'rgba(8,12,26,0.95)',
+        titleColor:'#00D4FF',
+        bodyColor:'#C8D6E5',
+        borderColor:'rgba(0,212,255,0.2)',
+        borderWidth:1,
+        padding:12,
+        callbacks:{label:function(ctx){return ctx.parsed.y+' 万亿美元'}}
+      }
+    },
     scales:{
-      y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:12}}},
-      x:{grid:{display:false},ticks:{font:{size:11}}}
+      y:{
+        beginAtZero:true,
+        grid:{color:'rgba(0,212,255,0.06)'},
+        ticks:{color:'#556688',font:{size:11}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      },
+      x:{
+        grid:{display:false},
+        ticks:{color:'#8899BB',font:{size:11}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      }
     }
   }
 });
 
 // 5. China vs USA compare
-const cmpCtx = document.getElementById('compareChart').getContext('2d');
-new Chart(cmpCtx, {
+const cmpCtx=document.getElementById('compareChart').getContext('2d');
+new Chart(cmpCtx,{
   type:'bar',
   data:{
-    labels:['MVA\n(万亿$)','全球\n占比(%)','就业\n(百万人)','工业\n门类(个)','世界500\n强工业(家)','占GDP\n比重(%)'],
+    labels:['MVA\n(万亿$)','全球\n占比(%)','就业\n(百万人)','工业\n门类(个)','500强\n工业(家)','占GDP\n比重(%)'],
     datasets:[
-      {label:'中国',data:[4.7,30.2,150,41,52,26.8],backgroundColor:'#1565C0',borderRadius:4},
-      {label:'美国',data:[2.5,16.4,12.8,30,28,11.0],backgroundColor:'#FB8C00',borderRadius:4}
+      {
+        label:'中国',
+        data:[4.7,30.2,150,41,52,26.8],
+        backgroundColor:'rgba(255,0,51,0.8)',
+        borderColor:'#FF0033',
+        borderWidth:1,
+        borderRadius:4
+      },
+      {
+        label:'美国',
+        data:[2.5,16.4,12.8,30,28,11.0],
+        backgroundColor:'rgba(0,212,255,0.5)',
+        borderColor:'#00D4FF',
+        borderWidth:1,
+        borderRadius:4
+      }
     ]
   },
   options:{
     responsive:true,maintainAspectRatio:true,
-    plugins:{tooltip:{mode:'index'}},
+    plugins:{
+      legend:{
+        labels:{color:'#8899BB',font:{size:12},usePointStyle:true}
+      },
+      tooltip:{
+        backgroundColor:'rgba(8,12,26,0.95)',
+        titleColor:'#00D4FF',
+        bodyColor:'#C8D6E5',
+        borderColor:'rgba(0,212,255,0.2)',
+        borderWidth:1,
+        padding:12,
+        mode:'index'
+      }
+    },
     scales:{
-      y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.06)'},ticks:{font:{size:11}}},
-      x:{grid:{display:false},ticks:{font:{size:11}}}
+      y:{
+        beginAtZero:true,
+        grid:{color:'rgba(0,212,255,0.06)'},
+        ticks:{color:'#556688',font:{size:10}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      },
+      x:{
+        grid:{display:false},
+        ticks:{color:'#8899BB',font:{size:10}},
+        border:{color:'rgba(0,212,255,0.1)'}
+      }
     }
   }
 });
